@@ -1,99 +1,72 @@
-using NUnit.Framework;
-using System.Collections;
-using System.Collections.Generic;
-using Unity.Cinemachine;
-using Unity.VisualScripting;
-using Unity.VisualScripting.Antlr3.Runtime.Tree;
-using UnityEditor;
-using UnityEditor.Experimental.GraphView;
-using UnityEditor.Search;
 using UnityEngine;
-using UnityEngine.InputSystem;
-using static Unity.VisualScripting.Member;
-using static UnityEngine.UIElements.UxmlAttributeDescription;
+using Unity.Cinemachine;
 
 public class PlayerController : MonoBehaviour
 {
-    [SerializeField] private Transform cameraTransform;
-    [SerializeField] private float speed = 5f;
-    [SerializeField] private float jumpHeight = 2f;
-    [SerializeField] private float gravity = -9.8f;
-    [SerializeField] private bool shouldFaceMoveDirection = false;
-    [SerializeField] private Transform yawTarget;
+    [Header("Dependencies")]
+    [SerializeField] private InputReader _inputReader;
+    [SerializeField] private PlayerStats _stats;
+    [SerializeField] private CharacterController _characterController;
+    [SerializeField] private Animator _animator;
 
-    private CharacterController controller;
-    private Vector2 moveInput;
-    private Vector3 velocity;
+    [SerializeField] private WorldCrosshairController crosshairController;
     public bool isAiming;
-    // Start is called before the first frame update
-    void Start()
+    [Header("Cameras")]
+    [SerializeField] private CinemachineCamera _freeLookCamera;
+    [SerializeField] private CinemachineCamera _aimCamera;
+    [SerializeField] private Transform _mainCamera;
+
+    private PlayerBaseState _currentState;
+    private PlayerStateFactory _states;
+
+    // Data Inputs
+    public Vector2 CurrentMovementInput { get; private set; }
+    public bool IsAimingPressed { get; private set; }
+    public bool IsSprintingPressed { get; private set; } // New Property
+
+    public float RotationVelocity;
+
+    // Getters
+    public Animator Animator => _animator;
+    public CharacterController CharacterController => _characterController;
+    public PlayerStats Stats => _stats;
+    public CinemachineCamera FreeLookCamera => _freeLookCamera;
+    public CinemachineCamera AimCamera => _aimCamera;
+    public Transform MainCamera => _mainCamera;
+    public PlayerBaseState CurrentState { set => _currentState = value; }
+
+    private void Awake()
     {
-        controller = GetComponent<CharacterController>();
+        _states = new PlayerStateFactory(this);
+        _currentState = _states.FreeLook();
+        if (_mainCamera == null) _mainCamera = UnityEngine.Camera.main.transform;
     }
 
-    // Update is called once per frame
-    void Update()
+    private void Start()
     {
-        Vector3 moveDirection = Vector3.zero;
-
-        if(isAiming)
-        {
-            Vector3 forward = transform.forward;
-            Vector3 right = transform.right;
-
-            forward.y = 0;
-            right.y = 0;
-
-            forward.Normalize();
-            right.Normalize();
-            moveDirection = forward * moveInput.y + right * moveInput.x;
-        }
-        else
-        {
-            Vector3 forward = cameraTransform.forward;
-            Vector3 right = cameraTransform.right;
-
-            forward.y = 0;
-            right.y = 0;
-
-            forward.Normalize();
-            right.Normalize();
-            moveDirection = forward * moveInput.y + right * moveInput.x;
-        }
-
-        controller.Move(speed * Time.deltaTime * moveDirection);
-
-        if(isAiming)
-        {
-            Vector3 lookDirection = yawTarget.forward;
-            lookDirection.y = 0;
-
-            if(lookDirection.sqrMagnitude > 0.01f)
-            {
-                Quaternion targetRotation = Quaternion.LookRotation(lookDirection);
-                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 10f);
-            }
-        }
-        else if (shouldFaceMoveDirection && moveDirection.sqrMagnitude > 0.001f)
-        {
-            Quaternion toRotation = Quaternion.LookRotation(moveDirection, Vector3.up);
-            transform.rotation = Quaternion.Slerp(transform.rotation, toRotation, 10f * Time.deltaTime);
-        }
-
-        velocity.y += gravity * Time.deltaTime;
-        controller.Move(velocity*Time.deltaTime);
+        _currentState.EnterState();
     }
 
-    public void OnMove(InputAction.CallbackContext context)
+    private void OnEnable()
     {
-        moveInput = context.ReadValue<Vector2>();
+        _inputReader.MoveEvent += OnMove;
+        _inputReader.AimEvent += OnAim;
+        _inputReader.SprintEvent += OnSprint; // Subscribe
     }
 
-    public void OnJump(InputAction.CallbackContext context)
+    private void OnDisable()
     {
-        if(context.performed && controller.isGrounded)
-        {
-            velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
-        }
+        _inputReader.MoveEvent -= OnMove;
+        _inputReader.AimEvent -= OnAim;
+        _inputReader.SprintEvent -= OnSprint; // Unsubscribe
     }
+
+    private void Update()
+    {
+        _currentState.UpdateState();
+    }
+
+    private void OnMove(Vector2 input) => CurrentMovementInput = input;
+    private void OnAim(bool isAiming) => IsAimingPressed = isAiming;
+    private void OnSprint(bool isSprinting) => IsSprintingPressed = isSprinting; // Listener
 }

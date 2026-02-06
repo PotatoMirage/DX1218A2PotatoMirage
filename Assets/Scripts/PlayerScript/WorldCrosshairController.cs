@@ -1,12 +1,17 @@
 using UnityEngine;
+using UnityEngine.Animations.Rigging;
 
 public class WorldCrosshairController : MonoBehaviour
 {
     [SerializeField] private RectTransform crosshairUI;
+    [SerializeField] private Transform rigAimTarget;
     [SerializeField] private Camera aimCamera;
     [SerializeField] private float maxDistance = 20f;
     [SerializeField] private float crossHairOffsetMultiplier = 0.01f;
     [SerializeField] private LayerMask raycastMask = -0;
+    [SerializeField] private Rig aimRig;
+    [SerializeField] private PlayerController playerController;
+    [SerializeField] private float aimTransitionSpeed = 10f;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -32,6 +37,15 @@ public class WorldCrosshairController : MonoBehaviour
             crosshairUI.forward = aimCamera.transform.forward;
         }
 
-        crosshairUI.position = targetPos;
+        if (crosshairUI != null)
+        {
+            crosshairUI.position = targetPos;
+        }
+        if (rigAimTarget != null)
+        {
+            rigAimTarget.position = targetPos;
+        }
+        float targetWeight = playerController.isAiming ? 1f : 0f;
+        aimRig.weight = Mathf.Lerp(aimRig.weight, targetWeight, Time.deltaTime * aimTransitionSpeed);
     }
 }

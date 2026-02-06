@@ -19,6 +19,7 @@ public class CameraSwitcher : MonoBehaviour
     private Transform pitchTarget;
 
     private AimCameraController aimCamController;
+    public event Action<bool> OnAimStateChanged;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -34,8 +35,9 @@ public class CameraSwitcher : MonoBehaviour
     void Update()
     {
         bool aimPressed = aimAction.IsPressed();
-        player.isAiming = aimPressed;
 
+        // 2. Remove direct reference to player.isAiming = aimPressed;
+        // Instead, only fire event when state changes:
         if (aimPressed && !isAiming)
         {
             EnterAimMode();
@@ -48,6 +50,7 @@ public class CameraSwitcher : MonoBehaviour
     private void EnterAimMode()
     {
         isAiming = true;
+        OnAimStateChanged?.Invoke(true);
         SnapAimCameraToPlayerForward();
         aimCam.Priority = 20;
         freelookCam.Priority = 10;
@@ -56,6 +59,7 @@ public class CameraSwitcher : MonoBehaviour
     private void ExitAimMode()
     {
         isAiming = false;
+        OnAimStateChanged?.Invoke(false);
         SnapFreeLookBehindPlayer();
         aimCam.Priority = 10;
         freelookCam.Priority = 20;
