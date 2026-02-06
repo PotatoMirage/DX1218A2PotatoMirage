@@ -8,9 +8,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private PlayerStats _stats;
     [SerializeField] private CharacterController _characterController;
     [SerializeField] private Animator _animator;
-
     [SerializeField] private WorldCrosshairController crosshairController;
-    public bool isAiming;
+
     [Header("Cameras")]
     [SerializeField] private CinemachineCamera _freeLookCamera;
     [SerializeField] private CinemachineCamera _aimCamera;
@@ -22,7 +21,13 @@ public class PlayerController : MonoBehaviour
     // Data Inputs
     public Vector2 CurrentMovementInput { get; private set; }
     public bool IsAimingPressed { get; private set; }
-    public bool IsSprintingPressed { get; private set; } // New Property
+    public bool IsSprintingPressed { get; private set; }
+
+    // [NEW] Combat State
+    public bool IsRangedMode { get; private set; } = false; // Default to Melee
+
+    // Observer Subject: Notify other systems (UI, Weapons) when mode changes
+    public event System.Action<bool> OnCombatModeChanged;
 
     public float RotationVelocity;
 
@@ -51,14 +56,18 @@ public class PlayerController : MonoBehaviour
     {
         _inputReader.MoveEvent += OnMove;
         _inputReader.AimEvent += OnAim;
-        _inputReader.SprintEvent += OnSprint; // Subscribe
+        _inputReader.SprintEvent += OnSprint;
+
+        // [NEW] Subscribe to switch event
+        _inputReader.SwitchCombatEvent += OnSwitchCombatMode;
     }
 
     private void OnDisable()
     {
         _inputReader.MoveEvent -= OnMove;
         _inputReader.AimEvent -= OnAim;
-        _inputReader.SprintEvent -= OnSprint; // Unsubscribe
+        _inputReader.SprintEvent -= OnSprint;
+        _inputReader.SwitchCombatEvent -= OnSwitchCombatMode;
     }
 
     private void Update()
@@ -67,6 +76,39 @@ public class PlayerController : MonoBehaviour
     }
 
     private void OnMove(Vector2 input) => CurrentMovementInput = input;
-    private void OnAim(bool isAiming) => IsAimingPressed = isAiming;
-    private void OnSprint(bool isSprinting) => IsSprintingPressed = isSprinting; // Listener
+    private void OnSprint(bool isSprinting) => IsSprintingPressed = isSprinting;
+
+    // [MODIFIED] Logic to gatekeep Aiming
+    private void OnAim(bool isAiming)
+    {
+        // Only allow aiming if we are in Ranged Mode
+        if (IsRangedMode)
+        {
+            IsAimingPressed = isAiming;
+        }
+        else
+        {
+            IsAimingPressed = false;
+        }
+    }
+
+    // [NEW] Handle Mode Switching
+    private void OnSwitchCombatMode()
+    {
+        IsRangedMode = !IsRangedMode;
+
+        // Notify observers (like UI or Animation layers)
+        OnCombatModeChanged?.Invoke(IsRangedMode);
+
+        // Visual Feedback
+        Debug.Log($"Combat Mode Switched. Ranged: {IsRangedMode}");
+
+        // If we switch to Melee while holding Right Click, force exit Aim state
+        if (!IsRangedMode)
+        {
+            IsAimingPressed = false;
+            // The PlayerAimingState will exit automatically in its Update cycle 
+            // when it detects IsAimingPressed is false.
+        }
+    }
 }

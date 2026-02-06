@@ -22,6 +22,7 @@ public class WorldCrosshairController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        
         Vector3 screenCenter = new Vector3(Screen.width / 2f, Screen.height / 2f, 0);
         Ray ray = aimCamera.ScreenPointToRay(screenCenter);
 
@@ -45,7 +46,10 @@ public class WorldCrosshairController : MonoBehaviour
         {
             rigAimTarget.position = targetPos;
         }
-        float targetWeight = playerController.isAiming ? 1f : 0f;
-        aimRig.weight = Mathf.Lerp(aimRig.weight, targetWeight, Time.deltaTime * aimTransitionSpeed);
+        bool isAimingState = true; // Or: Input.GetMouseButton(1);
+
+        // 2. Set the target
+        float destination = isAimingState ? 1.0f : 0.0f;
+        aimRig.weight = Mathf.Lerp(aimRig.weight, destination, Time.deltaTime * aimTransitionSpeed);
     }
 }

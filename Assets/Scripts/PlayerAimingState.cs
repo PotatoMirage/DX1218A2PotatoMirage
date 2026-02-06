@@ -16,6 +16,7 @@ public class PlayerAimingState : PlayerBaseState
         CheckSwitchStates();
         HandleRotation();
         HandleMovement();
+        //Ctx.RotateBodyToAim();
     }
 
     public override void ExitState()

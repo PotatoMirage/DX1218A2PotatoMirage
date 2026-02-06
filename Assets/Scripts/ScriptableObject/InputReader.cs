@@ -9,10 +9,12 @@ public class InputReader : ScriptableObject, InputSystem_Actions.IPlayerActions
     public event UnityAction<Vector2> MoveEvent = delegate { };
     public event UnityAction<Vector2> LookEvent = delegate { };
     public event UnityAction AttackEvent = delegate { };
-    public event UnityAction<bool> AimEvent = delegate { }; // True = Start Aim, False = End
-    public event UnityAction<bool> SprintEvent = delegate { }; 
+    public event UnityAction<bool> AimEvent = delegate { };
+    public event UnityAction<bool> SprintEvent = delegate { };
 
-    // Change: Use your specific class name
+    // [NEW] Event for switching combat modes (Observer Pattern)
+    public event UnityAction SwitchCombatEvent = delegate { };
+
     private InputSystem_Actions _gameInput;
 
     private void OnEnable()
@@ -20,8 +22,6 @@ public class InputReader : ScriptableObject, InputSystem_Actions.IPlayerActions
         if (_gameInput == null)
         {
             _gameInput = new InputSystem_Actions();
-
-            // Change: 'Player' is the name of the Action Map in your provided file
             _gameInput.Player.SetCallbacks(this);
         }
         _gameInput.Player.Enable();
@@ -29,7 +29,7 @@ public class InputReader : ScriptableObject, InputSystem_Actions.IPlayerActions
 
     private void OnDisable()
     {
-        _gameInput.Player.Disable();
+        _gameInput?.Player.Disable();
     }
 
     // --- Interface Implementation ---
@@ -57,6 +57,7 @@ public class InputReader : ScriptableObject, InputSystem_Actions.IPlayerActions
         else if (context.phase == InputActionPhase.Canceled)
             AimEvent.Invoke(false);
     }
+
     public void OnSprint(InputAction.CallbackContext context)
     {
         if (context.phase == InputActionPhase.Performed)
@@ -65,7 +66,14 @@ public class InputReader : ScriptableObject, InputSystem_Actions.IPlayerActions
             SprintEvent.Invoke(false);
     }
 
-    // --- Required by Interface but unused for now ---
+    // [NEW] Callback for the Switch Input (e.g., 'Q')
+    public void OnSwitchCombat(InputAction.CallbackContext context)
+    {
+        if (context.phase == InputActionPhase.Performed)
+            SwitchCombatEvent.Invoke();
+    }
+
+    // Unused callbacks required by interface
     public void OnInteract(InputAction.CallbackContext context) { }
     public void OnCrouch(InputAction.CallbackContext context) { }
     public void OnJump(InputAction.CallbackContext context) { }
