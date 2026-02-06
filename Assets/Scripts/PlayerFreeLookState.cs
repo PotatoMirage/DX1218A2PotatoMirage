@@ -24,9 +24,15 @@ public class PlayerFreeLookState : PlayerBaseState
 
     public override void CheckSwitchStates()
     {
-        if (Ctx.IsAimingPressed)
+        // Existing Aim Logic
+        if (Ctx.IsRangedMode && Ctx.IsAimingPressed)
         {
             SwitchState(Factory.Aiming());
+        }
+        // New Block Logic
+        else if (!Ctx.IsRangedMode && Ctx.IsBlockingPressed)
+        {
+            SwitchState(Factory.Blocking());
         }
     }
 

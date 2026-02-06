@@ -8,7 +8,6 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private PlayerStats _stats;
     [SerializeField] private CharacterController _characterController;
     [SerializeField] private Animator _animator;
-    [SerializeField] private WorldCrosshairController crosshairController;
 
     [Header("Cameras")]
     [SerializeField] private CinemachineCamera _freeLookCamera;
@@ -17,16 +16,15 @@ public class PlayerController : MonoBehaviour
 
     private PlayerBaseState _currentState;
     private PlayerStateFactory _states;
-
+    public PlayerStats Stats => _stats;
     // Data Inputs
     public Vector2 CurrentMovementInput { get; private set; }
-    public bool IsAimingPressed { get; private set; }
+    public bool IsAimingPressed { get; private set; }   // Ranged RMB
+    public bool IsBlockingPressed { get; private set; } // Melee RMB
     public bool IsSprintingPressed { get; private set; }
+    public bool IsRangedMode { get; private set; } = false;
 
-    // [NEW] Combat State
-    public bool IsRangedMode { get; private set; } = false; // Default to Melee
-
-    // Observer Subject: Notify other systems (UI, Weapons) when mode changes
+    // Observer: Notify systems (Animation, UI)
     public event System.Action<bool> OnCombatModeChanged;
 
     public float RotationVelocity;
@@ -34,11 +32,10 @@ public class PlayerController : MonoBehaviour
     // Getters
     public Animator Animator => _animator;
     public CharacterController CharacterController => _characterController;
-    public PlayerStats Stats => _stats;
     public CinemachineCamera FreeLookCamera => _freeLookCamera;
     public CinemachineCamera AimCamera => _aimCamera;
     public Transform MainCamera => _mainCamera;
-    public PlayerBaseState CurrentState { set => _currentState = value; }
+    public PlayerBaseState CurrentState { get => _currentState; set => _currentState = value; }
 
     private void Awake()
     {
@@ -47,68 +44,51 @@ public class PlayerController : MonoBehaviour
         if (_mainCamera == null) _mainCamera = UnityEngine.Camera.main.transform;
     }
 
-    private void Start()
-    {
-        _currentState.EnterState();
-    }
+    private void Start() => _currentState.EnterState();
+    private void Update() => _currentState.UpdateState();
 
     private void OnEnable()
     {
         _inputReader.MoveEvent += OnMove;
-        _inputReader.AimEvent += OnAim;
+        _inputReader.AimEvent += OnAimOrBlock; // Renamed handler
         _inputReader.SprintEvent += OnSprint;
-
-        // [NEW] Subscribe to switch event
         _inputReader.SwitchCombatEvent += OnSwitchCombatMode;
     }
 
     private void OnDisable()
     {
         _inputReader.MoveEvent -= OnMove;
-        _inputReader.AimEvent -= OnAim;
+        _inputReader.AimEvent -= OnAimOrBlock;
         _inputReader.SprintEvent -= OnSprint;
         _inputReader.SwitchCombatEvent -= OnSwitchCombatMode;
-    }
-
-    private void Update()
-    {
-        _currentState.UpdateState();
     }
 
     private void OnMove(Vector2 input) => CurrentMovementInput = input;
     private void OnSprint(bool isSprinting) => IsSprintingPressed = isSprinting;
 
-    // [MODIFIED] Logic to gatekeep Aiming
-    private void OnAim(bool isAiming)
+    // [MODIFIED] Route Input based on State
+    private void OnAimOrBlock(bool isPressed)
     {
-        // Only allow aiming if we are in Ranged Mode
         if (IsRangedMode)
         {
-            IsAimingPressed = isAiming;
+            IsAimingPressed = isPressed;
+            IsBlockingPressed = false;
         }
         else
         {
+            IsBlockingPressed = isPressed;
             IsAimingPressed = false;
         }
     }
 
-    // [NEW] Handle Mode Switching
     private void OnSwitchCombatMode()
     {
         IsRangedMode = !IsRangedMode;
 
-        // Notify observers (like UI or Animation layers)
+        // Reset Inputs on switch to prevent stuck states
+        IsAimingPressed = false;
+        IsBlockingPressed = false;
+
         OnCombatModeChanged?.Invoke(IsRangedMode);
-
-        // Visual Feedback
-        Debug.Log($"Combat Mode Switched. Ranged: {IsRangedMode}");
-
-        // If we switch to Melee while holding Right Click, force exit Aim state
-        if (!IsRangedMode)
-        {
-            IsAimingPressed = false;
-            // The PlayerAimingState will exit automatically in its Update cycle 
-            // when it detects IsAimingPressed is false.
-        }
     }
 }
