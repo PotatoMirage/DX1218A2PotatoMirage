@@ -1,94 +1,100 @@
 using UnityEngine;
-using Unity.Cinemachine;
 
+[RequireComponent(typeof(CharacterController))]
 public class PlayerController : MonoBehaviour
 {
     [Header("Dependencies")]
-    [SerializeField] private InputReader _inputReader;
-    [SerializeField] private PlayerStats _stats;
-    [SerializeField] private CharacterController _characterController;
-    [SerializeField] private Animator _animator;
+    public InputReader Input;
+    public Animator Animator;
+    public CharacterController CharController;
+    public Transform MainCamera;
 
-    [Header("Cameras")]
-    [SerializeField] private CinemachineCamera _freeLookCamera;
-    [SerializeField] private CinemachineCamera _aimCamera;
-    [SerializeField] private Transform _mainCamera;
+    [Header("Combat Config")]
+    public AttackConfigSO[] AttackCombo; // Drag your 5 attack SOs here
+    public float WalkSpeed = 2f;
+    public float RunSpeed = 5f;
+    public float RotationSpeed = 15f;
 
-    private PlayerBaseState _currentState;
-    private PlayerStateFactory _states;
-    public PlayerStats Stats => _stats;
-    // Data Inputs
-    public Vector2 CurrentMovementInput { get; private set; }
-    public bool IsAimingPressed { get; private set; }   // Ranged RMB
-    public bool IsBlockingPressed { get; private set; } // Melee RMB
-    public bool IsSprintingPressed { get; private set; }
-    public bool IsRangedMode { get; private set; } = false;
+    // State Machine
+    public PlayerBaseState CurrentState;
+    public PlayerStateFactory StateFactory;
 
-    // Observer: Notify systems (Animation, UI)
-    public event System.Action<bool> OnCombatModeChanged;
+    // Runtime Data
+    [HideInInspector] public Vector2 CurrentMovementInput;
+    [HideInInspector] public bool IsCombatMode;
+    [HideInInspector] public bool IsBlocking;
+    [HideInInspector] public bool IsAttacking;
+    [HideInInspector] public bool IsDead;
+    [HideInInspector] public bool IsStunned;
+    [HideInInspector] public int CurrentComboIndex = 0;
+    [HideInInspector] public float LastAttackTime = 0;
 
-    public float RotationVelocity;
-
-    // Getters
-    public Animator Animator => _animator;
-    public CharacterController CharacterController => _characterController;
-    public CinemachineCamera FreeLookCamera => _freeLookCamera;
-    public CinemachineCamera AimCamera => _aimCamera;
-    public Transform MainCamera => _mainCamera;
-    public PlayerBaseState CurrentState { get => _currentState; set => _currentState = value; }
+    // Hashing Animator Parameters for performance
+    public readonly int AnimID_Speed = Animator.StringToHash("Speed");
+    public readonly int AnimID_X = Animator.StringToHash("InputX");
+    public readonly int AnimID_Y = Animator.StringToHash("InputY");
+    public readonly int AnimID_CombatMode = Animator.StringToHash("CombatMode");
+    public readonly int AnimID_Block = Animator.StringToHash("Blocking");
+    public readonly int AnimID_Dodge = Animator.StringToHash("TriggerDodge");
+    public readonly int AnimID_Stun = Animator.StringToHash("TriggerStun");
+    public readonly int AnimID_Death = Animator.StringToHash("TriggerDeath");
+    // Attacks can be triggered via CrossFade, so we might not need parameters for them
 
     private void Awake()
     {
-        _states = new PlayerStateFactory(this);
-        _currentState = _states.FreeLook();
-        if (_mainCamera == null) _mainCamera = UnityEngine.Camera.main.transform;
+        StateFactory = new PlayerStateFactory(this);
+        CurrentState = StateFactory.Idle();
+        CurrentState.EnterState();
     }
-
-    private void Start() => _currentState.EnterState();
-    private void Update() => _currentState.UpdateState();
 
     private void OnEnable()
     {
-        _inputReader.MoveEvent += OnMove;
-        _inputReader.AimEvent += OnAimOrBlock; // Renamed handler
-        _inputReader.SprintEvent += OnSprint;
-        _inputReader.SwitchCombatEvent += OnSwitchCombatMode;
+        Input.MoveEvent += OnMove;
+        Input.ToggleCombatEvent += OnToggleCombat;
+        Input.BlockEventStart += () => IsBlocking = true;
+        Input.BlockEventCancel += () => IsBlocking = false;
+        // Attack and Dodge are handled inside states via CheckSwitchStates or direct polling
     }
 
     private void OnDisable()
     {
-        _inputReader.MoveEvent -= OnMove;
-        _inputReader.AimEvent -= OnAimOrBlock;
-        _inputReader.SprintEvent -= OnSprint;
-        _inputReader.SwitchCombatEvent -= OnSwitchCombatMode;
+        Input.MoveEvent -= OnMove;
+        Input.ToggleCombatEvent -= OnToggleCombat;
+        // Unsubscribe others...
+    }
+
+    private void Update()
+    {
+        CurrentState.UpdateState();
+        CurrentState.CheckSwitchStates();
+    }
+
+    private void FixedUpdate()
+    {
+        CurrentState.FixedUpdateState();
     }
 
     private void OnMove(Vector2 input) => CurrentMovementInput = input;
-    private void OnSprint(bool isSprinting) => IsSprintingPressed = isSprinting;
 
-    // [MODIFIED] Route Input based on State
-    private void OnAimOrBlock(bool isPressed)
+    private void OnToggleCombat()
     {
-        if (IsRangedMode)
-        {
-            IsAimingPressed = isPressed;
-            IsBlockingPressed = false;
-        }
-        else
-        {
-            IsBlockingPressed = isPressed;
-            IsAimingPressed = false;
-        }
+        IsCombatMode = !IsCombatMode;
+        Animator.SetBool(AnimID_CombatMode, IsCombatMode);
     }
 
-    private void OnSwitchCombatMode()
+    // Public method for external components (like enemies) to call
+    public void TakeDamage(int amount)
     {
-        IsRangedMode = !IsRangedMode;
+        if (IsBlocking)
+        {
+            // Calculate block break logic here
+            // If block broken: IsStunned = true;
+            Debug.Log("Blocked!");
+            return;
+        }
 
-        // Reset Inputs on switch to prevent stuck states
-        IsAimingPressed = false;
-        IsBlockingPressed = false;
-
-        OnCombatModeChanged?.Invoke(IsRangedMode);
+        // Apply Damage
+        Animator.Play("TakeDamage", 0, 0f); // Or Trigger
+        // If Health <= 0: IsDead = true;
     }
 }

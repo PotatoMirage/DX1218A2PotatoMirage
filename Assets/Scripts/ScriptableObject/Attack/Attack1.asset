@@ -12,9 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4bb53ad74578dba45920a779631f3f33, type: 3}
   m_Name: Attack1
   m_EditorClassIdentifier: Assembly-CSharp::AttackConfigSO
-  animationStateName: Attack1
-  transitionDuration: 0.1
-  comboUnlockTime: 0.5
-  attackEndTime: 0.9
-  impulseForce: 1
-  damageAmount: 10
+  AnimationName: Attack1
+  TransitionDuration: 0.1
+  DamageWindowStart: 0
+  DamageWindowEnd: 0
+  ComboResetTime: 0
+  DamageAmount: 10
+  KnockbackForce: 5

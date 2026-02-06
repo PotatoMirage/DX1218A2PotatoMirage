@@ -43,8 +43,6 @@ public class PlayerShooting : MonoBehaviour
 
     private void HandleShooting()
     {
-        // 1. Guard: Only shoot if in Ranged Mode
-        if (!_playerController.IsRangedMode) return;
 
         // 2. Rate Limit
         if (Time.time < _nextFireTime) return;
