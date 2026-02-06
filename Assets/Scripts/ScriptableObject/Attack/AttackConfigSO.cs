@@ -4,15 +4,16 @@ using UnityEngine;
 public class AttackConfigSO : ScriptableObject
 {
     [Header("Animation")]
-    public string AnimationName; // Matches the Parameter or Clip name in Animator
-    public float TransitionDuration = 0.1f;
+    public string animationStateName; // e.g., "Attack1"
+    public float transitionDuration = 0.1f;
 
     [Header("Timing")]
-    public float DamageWindowStart; // Time in seconds when hitbox activates
-    public float DamageWindowEnd;   // Time in seconds when hitbox deactivates
-    public float ComboResetTime;    // Time after which combo resets if no input
+    [Tooltip("Normalized time (0-1) when the next attack can be queued")]
+    public float comboUnlockTime = 0.5f;
+    [Tooltip("Normalized time (0-1) when the animation is considered 'finished'")]
+    public float attackEndTime = 0.9f;
 
-    [Header("Damage")]
-    public int DamageAmount = 10;
-    public float KnockbackForce = 5f;
+    [Header("Impact")]
+    public float impulseForce = 1f;
+    public int damageAmount = 10;
 }

@@ -1,24 +1,39 @@
-// PlayerBlockState.cs
+using UnityEngine;
+
 public class PlayerBlockState : PlayerBaseState
 {
-    public PlayerBlockState(PlayerController ctx, PlayerStateFactory factory) : base(ctx, factory) { }
+    public PlayerBlockState(PlayerController context, PlayerStateFactory factory)
+        : base(context, factory) { }
 
     public override void EnterState()
     {
-        Ctx.Animator.SetBool(Ctx.AnimID_Block, true);
+        // Stop movement while blocking
+        Ctx.Animator.SetBool("IsBlocking", true);
     }
+
     public override void UpdateState()
     {
-        // Block Loop Animation handles itself via bool
+        CheckSwitchStates();
+        // Zero out movement logic here if you want them rooted
+        Ctx.CharacterController.Move(Vector3.zero);
     }
-    public override void FixedUpdateState() { }
+
     public override void ExitState()
     {
-        Ctx.Animator.SetBool(Ctx.AnimID_Block, false);
+        Ctx.Animator.SetBool("IsBlocking", false);
     }
+
     public override void CheckSwitchStates()
     {
-        if (!Ctx.IsBlocking) SwitchState(Factory.CombatIdle());
-        if (Ctx.IsStunned) SwitchState(Factory.Stun());
+        // 1. If we let go of Block (RMB), return to FreeLook
+        if (!Ctx.IsBlockingPressed)
+        {
+            SwitchState(Factory.FreeLook());
+        }
+        // 2. If we switch to Ranged mode abruptly, exit block
+        else if (Ctx.IsRangedMode)
+        {
+            SwitchState(Factory.FreeLook());
+        }
     }
 }
