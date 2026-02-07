@@ -1,31 +1,60 @@
-using System;
-using Unity.Cinemachine;
 using UnityEngine;
-using static UnityEditor.Experimental.GraphView.GraphView;
+using Unity.Cinemachine;
 
 public class AttackHandler : MonoBehaviour
 {
-    [SerializeField] private SphereCollider[] detectors;
+    [SerializeField] private Collider[] detectors; // Assign your Sword SphereColliders here
     [SerializeField] private CinemachineImpulseSource[] source;
+
+    // Safety check to prevent double-hitting the same enemy in one swing
+    private bool _hasHit;
+
+    private void Awake()
+    {
+        // Ensure all are disabled at start
+        DisableCollider();
+    }
+
+    // Called by Animation Event (Start of active swing)
     public void EnableCollider(int index)
     {
-        SphereCollider detector = detectors[index];
-        detector.enabled = true;
-        // Only detect collision with any object on Target layer
-        LayerMask layer = LayerMask.GetMask("Target");
-        Collider[] hitColliders =  Physics.OverlapSphere(detector.transform.position, detector.radius, layer);
-        for (int i = 0; i < hitColliders.Length; i++)
+        _hasHit = false; // Reset hit flag for new swing
+        if (index < detectors.Length)
         {
-            detector.enabled = false;
-            // Perform damage on other object, show feedback, etc
-            source[index].GenerateImpulse(Camera.main.transform.forward);
+            detectors[index].enabled = true;
         }
     }
+
+    // Called by Animation Event (End of active swing)
     public void DisableCollider()
     {
-        foreach(SphereCollider detector in detectors)
+        foreach (Collider detector in detectors)
         {
             detector.enabled = false;
+        }
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (_hasHit) return;
+
+        // 2. Check Layer (Using CompareTag is often cheaper, but LayerMask is fine too)
+        // Ensure your Enemy GameObject is on the "Target" layer!
+        if (((1 << collision.gameObject.layer) & LayerMask.GetMask("Target")) != 0)
+        {
+            Debug.Log($"Hit {collision}!");
+
+            _hasHit = true;
+
+            // Generate Impulse (Shake)
+            // Use index 0 for simplicity, or track which weapon is active
+            if (source.Length > 0) source[0].GenerateImpulse(Camera.main.transform.forward);
+
+            // Apply Damage logic here
+            // e.g., other.GetComponent<Health>()?.TakeDamage(10);
+
+            // Disable immediately if you only want 1 hit per swing
+            DisableCollider();
         }
     }
 }

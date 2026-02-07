@@ -97,7 +97,7 @@ public class PlayerCombat : MonoBehaviour
 
     private bool IsAnimationReady(string stateName, float threshold)
     {
-        AnimatorStateInfo info = _animator.GetCurrentAnimatorStateInfo(0);
+        AnimatorStateInfo info = _animator.GetCurrentAnimatorStateInfo(1);
         return info.IsName(stateName) && info.normalizedTime >= threshold;
     }
 

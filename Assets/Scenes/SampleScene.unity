@@ -3836,6 +3836,7 @@ GameObject:
   - component: {fileID: 1669656586}
   - component: {fileID: 1669656585}
   - component: {fileID: 1669656584}
+  - component: {fileID: 1669656588}
   m_Layer: 6
   m_Name: Cube
   m_TagString: Untagged
@@ -3935,6 +3936,33 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!54 &1669656588
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1669656583}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 1
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
 --- !u!1 &1732765593
 GameObject:
   m_ObjectHideFlags: 0
@@ -4619,7 +4647,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::AimCameraController
   yawTarget: {fileID: 1732765594}
   pitchTarget: {fileID: 1834124046}
-  _playerController: {fileID: 0}
+  playerController: {fileID: 7759407454845845808}
   lookInput: {fileID: -5630151704836100654, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   switchShouldInput: {fileID: 3964726282925958535, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   mouseSensitivity: 0.05
@@ -6592,6 +6620,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8471805601612847371}
+  - component: {fileID: 8471805601612847372}
   m_Layer: 3
   m_Name: mixamorig:RightHand
   m_TagString: Untagged
@@ -6959,6 +6988,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3897916410953020160}
+  - component: {fileID: 5928157338020949776}
   m_Layer: 3
   m_Name: mixamorig:LeftHand
   m_TagString: Untagged
@@ -6966,6 +6996,27 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!135 &5928157338020949776
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5928157338020949775}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 50
+  m_Center: {x: 0, y: 9.85, z: 0}
 --- !u!1 &5982464356499355934
 GameObject:
   m_ObjectHideFlags: 0
@@ -7338,6 +7389,8 @@ GameObject:
   - component: {fileID: 7759407454845845801}
   - component: {fileID: 7759407454845845809}
   - component: {fileID: 7759407454845845810}
+  - component: {fileID: 7759407454845845811}
+  - component: {fileID: 7759407454845845812}
   m_Layer: 3
   m_Name: Player
   m_TagString: Untagged
@@ -7673,8 +7726,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d2a9adfc971e39940bce5f341735dbbf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AttackHandler
-  detectors: []
-  source: []
+  detectors:
+  - {fileID: 8471805601612847372}
+  - {fileID: 5928157338020949776}
+  source:
+  - {fileID: 1039234459}
 --- !u!114 &7759407454845845806
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7833,7 +7889,7 @@ CharacterController:
   m_StepOffset: 0.3
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
-  m_Center: {x: 0, y: 104.73, z: 9}
+  m_Center: {x: 0, y: 107.47, z: 9}
 --- !u!114 &7759407454845845808
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7889,6 +7945,35 @@ MonoBehaviour:
   _projectilePrefab: {fileID: 4347876782126520192, guid: 79ba57d23f33f5146b8999382ef81f13, type: 3}
   _firePoint: {fileID: 543450653337560010}
   _fireRate: 0.5
+--- !u!114 &7759407454845845811
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6982025643393981330}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a0c5184f89eff84b924ad2ae70e8f31, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerAnimationObserver
+  _playerController: {fileID: 7759407454845845808}
+  _animator: {fileID: 4417713666999655250}
+--- !u!114 &7759407454845845812
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6982025643393981330}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d924a04ea20d0f644a70eeb4a84bffe7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerRigController
+  playerController: {fileID: 7759407454845845808}
+  aimRig: {fileID: 1877497206}
+  blendSpeed: 5
 --- !u!1 &7783591884193949754
 GameObject:
   m_ObjectHideFlags: 0
@@ -8103,6 +8188,27 @@ Transform:
   - {fileID: 543450653337560010}
   m_Father: {fileID: 5744082304260100971}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!135 &8471805601612847372
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5299588616384777154}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 50
+  m_Center: {x: 0, y: 12.2, z: 0}
 --- !u!1 &8501975537769309356
 GameObject:
   m_ObjectHideFlags: 0

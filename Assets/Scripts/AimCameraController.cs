@@ -8,7 +8,7 @@ public class AimCameraController : MonoBehaviour
     [SerializeField] private Transform yawTarget;
     [SerializeField] private Transform pitchTarget;
 
-    [SerializeField] private PlayerController _playerController;
+    [SerializeField] private PlayerController playerController;
     [SerializeField] private InputActionReference lookInput;
     [SerializeField] private InputActionReference switchShouldInput;
 
@@ -64,8 +64,7 @@ public class AimCameraController : MonoBehaviour
 
     private void OnSwitchShoulder(InputAction.CallbackContext context)
     {
-        // FIX 1: Don't switch shoulders if we aren't in ranged mode
-        if (_playerController != null && !_playerController.IsRangedMode) return;
+        if (playerController != null && !playerController.IsRangedMode) return;
 
         targetCameraSide = aimCam.CameraSide < 0.5f ? 1f : 0f;
     }
@@ -73,9 +72,7 @@ public class AimCameraController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        // FIX 2: Stop Aim Camera logic if not in Ranged Mode
-        // This prevents the camera targets from locking rotation when you are just blocking
-        if (_playerController != null && !_playerController.IsRangedMode)
+        if (playerController != null && !playerController.IsRangedMode)
         {
             return;
         }
