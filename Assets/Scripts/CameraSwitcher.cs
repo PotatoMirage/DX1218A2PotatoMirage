@@ -36,13 +36,11 @@ public class CameraSwitcher : MonoBehaviour
     {
         bool aimPressed = aimAction.IsPressed();
 
-        // 2. Remove direct reference to player.isAiming = aimPressed;
-        // Instead, only fire event when state changes:
-        if (aimPressed && !isAiming)
+        if (aimPressed && !isAiming && player.IsRangedMode)
         {
             EnterAimMode();
         }
-        else if (!aimPressed && isAiming)
+        else if ((!aimPressed || !player.IsRangedMode) && isAiming)
         {
             ExitAimMode();
         }

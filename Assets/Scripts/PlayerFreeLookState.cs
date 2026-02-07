@@ -38,26 +38,29 @@ public class PlayerFreeLookState : PlayerBaseState
 
     private void HandleMovement()
     {
+        // 1. Capture Inputs
         Vector2 input = Ctx.CurrentMovementInput;
         Vector3 movement = new Vector3(input.x, 0, input.y);
 
-        if (movement.magnitude == 0)
+        // 2. Calculate the "Target" Animation Speed based on your rules
+        // Default to 0 (Idle)
+        float targetAnimSpeed = 0f;
+
+        if (movement.magnitude > 0)
         {
-            // Smoothly stop the animation
-            Ctx.Animator.SetBool("IsWalking", false);
-            Ctx.Animator.SetBool("IsRunning", false);
-            return;
+            // If moving, check if sprinting (1.0) or walking (0.5)
+            targetAnimSpeed = Ctx.IsSprintingPressed ? 1f : 0.5f;
         }
 
-        // Determine Speed and Animation Status
-        float speed = Ctx.IsSprintingPressed ? Ctx.Stats.RunSpeed : Ctx.Stats.WalkSpeed;
-        bool isRunning = Ctx.IsSprintingPressed;
+        // 3. Apply to Animator
+        // We use "0.1f" as dampTime to make the blend smooth, so it doesn't snap instantly
+        Ctx.Animator.SetFloat("Speed", targetAnimSpeed, 0.1f, Time.deltaTime);
 
-        // Set Animator
-        Ctx.Animator.SetBool("IsWalking", !isRunning); // True if moving but not sprinting
-        Ctx.Animator.SetBool("IsRunning", isRunning);  // True if sprinting
+        // --- Physics Movement Logic (Existing) ---
+        if (movement.magnitude == 0) return;
 
-        // Calculate Rotation
+        float moveSpeed = Ctx.IsSprintingPressed ? Ctx.Stats.RunSpeed : Ctx.Stats.WalkSpeed;
+
         float targetAngle = Mathf.Atan2(movement.x, movement.z) * Mathf.Rad2Deg +
                             Ctx.MainCamera.transform.eulerAngles.y;
 
@@ -66,9 +69,8 @@ public class PlayerFreeLookState : PlayerBaseState
 
         Ctx.transform.rotation = Quaternion.Euler(0f, angle, 0f);
 
-        // Move Forward relative to the new rotation
         Vector3 moveDir = Quaternion.Euler(0f, targetAngle, 0f) * Vector3.forward;
-        Ctx.CharacterController.Move(moveDir.normalized * speed * Time.deltaTime);
+        Ctx.CharacterController.Move(moveDir.normalized * moveSpeed * Time.deltaTime);
     }
 
     private void SwitchState(PlayerBaseState newState)
