@@ -16,7 +16,6 @@ public class PlayerAimingState : PlayerBaseState
         CheckSwitchStates();
         HandleRotation();
         HandleMovement();
-        //Ctx.RotateBodyToAim();
     }
 
     public override void ExitState()
@@ -30,6 +29,8 @@ public class PlayerAimingState : PlayerBaseState
         {
             SwitchState(Factory.FreeLook());
         }
+        // Optional: Allow jumping while aiming?
+        // if (Ctx.IsJumpPressed && Ctx.CharacterController.isGrounded) SwitchState(Factory.Jump());
     }
 
     private void HandleRotation()
@@ -42,20 +43,23 @@ public class PlayerAimingState : PlayerBaseState
     {
         Vector2 input = Ctx.CurrentMovementInput;
 
-        // Move Logic
-        Vector3 moveDirection = Ctx.transform.forward * input.y + Ctx.transform.right * input.x;
-        Ctx.CharacterController.Move(moveDirection * Ctx.Stats.AimingWalkSpeed * Time.deltaTime);
+        // --- Gravity ---
+        if (Ctx.CharacterController.isGrounded && Ctx.VerticalVelocity < 0)
+        {
+            Ctx.VerticalVelocity = -2f;
+        }
+        Ctx.VerticalVelocity += Ctx.Stats.Gravity * Time.deltaTime;
 
-        // --- SMOOTH ANIMATION ---
-        // This function automatically interpolates the value over 'AnimationDampTime' seconds
+        // --- Movement ---
+        Vector3 moveDirection = Ctx.transform.forward * input.y + Ctx.transform.right * input.x;
+
+        // Combine Strafing + Gravity
+        Vector3 finalMove = (moveDirection * Ctx.Stats.AimingWalkSpeed) + (Vector3.up * Ctx.VerticalVelocity);
+
+        Ctx.CharacterController.Move(finalMove * Time.deltaTime);
+
+        // Animation
         Ctx.Animator.SetFloat("InputX", input.x, Ctx.Stats.AnimationDampTime, Time.deltaTime);
         Ctx.Animator.SetFloat("InputY", input.y, Ctx.Stats.AnimationDampTime, Time.deltaTime);
-    }
-
-    private void SwitchState(PlayerBaseState newState)
-    {
-        ExitState();
-        newState.EnterState();
-        Ctx.CurrentState = newState;
     }
 }

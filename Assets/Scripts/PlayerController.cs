@@ -17,17 +17,24 @@ public class PlayerController : MonoBehaviour
     private PlayerBaseState _currentState;
     private PlayerStateFactory _states;
     public PlayerStats Stats => _stats;
+
     // Data Inputs
     public Vector2 CurrentMovementInput { get; private set; }
-    public bool IsAimingPressed { get; private set; }   // Ranged RMB
-    public bool IsBlockingPressed { get; private set; } // Melee RMB
+    public bool IsAimingPressed { get; private set; }
+    public bool IsBlockingPressed { get; private set; }
     public bool IsSprintingPressed { get; private set; }
+    public bool IsJumpPressed { get; private set; }     // [NEW]
+    public bool IsCrouchPressed { get; private set; }   // [NEW]
     public bool IsRangedMode { get; private set; } = false;
 
-    // Observer: Notify systems (Animation, UI)
-    public event System.Action<bool> OnCombatModeChanged;
-
+    // Physics State
+    public float VerticalVelocity; // [NEW] Handling Gravity
     public float RotationVelocity;
+
+    public bool UseRootMotion { get; set; } = false;
+
+    // Observer: Notify systems
+    public event System.Action<bool> OnCombatModeChanged;
 
     // Getters
     public Animator Animator => _animator;
@@ -50,8 +57,10 @@ public class PlayerController : MonoBehaviour
     private void OnEnable()
     {
         _inputReader.MoveEvent += OnMove;
-        _inputReader.AimEvent += OnAimOrBlock; // Renamed handler
+        _inputReader.AimEvent += OnAimOrBlock;
         _inputReader.SprintEvent += OnSprint;
+        _inputReader.JumpEvent += OnJump;      // [NEW]
+        _inputReader.CrouchEvent += OnCrouch;  // [NEW]
         _inputReader.SwitchCombatEvent += OnSwitchCombatMode;
     }
 
@@ -60,13 +69,16 @@ public class PlayerController : MonoBehaviour
         _inputReader.MoveEvent -= OnMove;
         _inputReader.AimEvent -= OnAimOrBlock;
         _inputReader.SprintEvent -= OnSprint;
+        _inputReader.JumpEvent -= OnJump;      // [NEW]
+        _inputReader.CrouchEvent -= OnCrouch;  // [NEW]
         _inputReader.SwitchCombatEvent -= OnSwitchCombatMode;
     }
 
     private void OnMove(Vector2 input) => CurrentMovementInput = input;
     private void OnSprint(bool isSprinting) => IsSprintingPressed = isSprinting;
+    private void OnJump(bool isJumping) => IsJumpPressed = isJumping;     // [NEW]
+    private void OnCrouch(bool isCrouching) => IsCrouchPressed = isCrouching; // [NEW]
 
-    // [MODIFIED] Route Input based on State
     private void OnAimOrBlock(bool isPressed)
     {
         if (IsRangedMode)
@@ -84,11 +96,27 @@ public class PlayerController : MonoBehaviour
     private void OnSwitchCombatMode()
     {
         IsRangedMode = !IsRangedMode;
-
-        // Reset Inputs on switch to prevent stuck states
         IsAimingPressed = false;
         IsBlockingPressed = false;
-
         OnCombatModeChanged?.Invoke(IsRangedMode);
+    }
+    private void OnAnimatorMove()
+    {
+        if (UseRootMotion)
+        {
+            // 1. Get movement from Animation
+            Vector3 velocity = _animator.deltaPosition;
+
+            // 2. Apply Manual Gravity (since Root Motion usually ignores Y)
+            // We multiply by deltaTime because VerticalVelocity is "per second"
+            // but deltaPosition is "per frame".
+            velocity.y += VerticalVelocity * Time.deltaTime;
+
+            // 3. Move the Controller
+            _characterController.Move(velocity);
+
+            // 4. Apply Rotation from Animation
+            transform.rotation *= _animator.deltaRotation;
+        }
     }
 }

@@ -7,25 +7,20 @@ public class PlayerBlockState : PlayerBaseState
 
     public override void EnterState()
     {
-        // [FIX] Turn the FreeLook camera back on, because FreeLookState disabled it on Exit
         Ctx.FreeLookCamera.gameObject.SetActive(true);
-
         Ctx.Animator.SetBool("IsBlocking", true);
     }
 
     public override void UpdateState()
     {
         CheckSwitchStates();
-
-        // Ensure the player is rooted (or add HandleMovement if you want strafing)
-        Ctx.CharacterController.Move(Vector3.zero);
+        HandleRotation();
+        HandleMovement();
     }
 
     public override void ExitState()
     {
         Ctx.Animator.SetBool("IsBlocking", false);
-
-        // [FIX] Disable the camera when leaving (so AimState can take over if needed)
         Ctx.FreeLookCamera.gameObject.SetActive(false);
     }
 
@@ -39,5 +34,39 @@ public class PlayerBlockState : PlayerBaseState
         {
             SwitchState(Factory.FreeLook());
         }
+        // Optional: Allow Jumping from Block?
+        // if (Ctx.IsJumpPressed) SwitchState(Factory.Jump());
+    }
+
+    private void HandleRotation()
+    {
+        // While blocking, we usually face the camera direction to block incoming attacks
+        float yawCamera = Ctx.MainCamera.transform.rotation.eulerAngles.y;
+        Ctx.transform.rotation = Quaternion.Slerp(Ctx.transform.rotation, Quaternion.Euler(0, yawCamera, 0), 20 * Time.deltaTime);
+    }
+
+    private void HandleMovement()
+    {
+        Vector2 input = Ctx.CurrentMovementInput;
+
+        // Apply Gravity
+        if (Ctx.CharacterController.isGrounded && Ctx.VerticalVelocity < 0)
+        {
+            Ctx.VerticalVelocity = -2f;
+        }
+        Ctx.VerticalVelocity += Ctx.Stats.Gravity * Time.deltaTime;
+
+        // Strafe Logic
+        Vector3 moveDirection = Ctx.transform.forward * input.y + Ctx.transform.right * input.x;
+        moveDirection.y = 0; // Keep horizontal only
+
+        // Combine Move + Gravity
+        Vector3 finalMove = (moveDirection * Ctx.Stats.BlockSpeed) + (Vector3.up * Ctx.VerticalVelocity);
+
+        Ctx.CharacterController.Move(finalMove * Time.deltaTime);
+
+        // Animate
+        Ctx.Animator.SetFloat("InputX", input.x, Ctx.Stats.AnimationDampTime, Time.deltaTime);
+        Ctx.Animator.SetFloat("InputY", input.y, Ctx.Stats.AnimationDampTime, Time.deltaTime);
     }
 }

@@ -14,7 +14,7 @@ public class RagdollController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame)
+        if (Keyboard.current != null && Keyboard.current.backspaceKey.wasPressedThisFrame)
         {
             animator.enabled = !animator.enabled;
             isRagdoll = !isRagdoll;

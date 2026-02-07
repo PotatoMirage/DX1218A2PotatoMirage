@@ -11,8 +11,9 @@ public class InputReader : ScriptableObject, InputSystem_Actions.IPlayerActions
     public event UnityAction AttackEvent = delegate { };
     public event UnityAction<bool> AimEvent = delegate { };
     public event UnityAction<bool> SprintEvent = delegate { };
+    public event UnityAction<bool> JumpEvent = delegate { };   // [NEW]
+    public event UnityAction<bool> CrouchEvent = delegate { }; // [NEW]
 
-    // [NEW] Event for switching combat modes (Observer Pattern)
     public event UnityAction SwitchCombatEvent = delegate { };
 
     private InputSystem_Actions _gameInput;
@@ -66,17 +67,32 @@ public class InputReader : ScriptableObject, InputSystem_Actions.IPlayerActions
             SprintEvent.Invoke(false);
     }
 
-    // [NEW] Callback for the Switch Input (e.g., 'Q')
+    // [NEW] Jump Implementation
+    public void OnJump(InputAction.CallbackContext context)
+    {
+        if (context.phase == InputActionPhase.Performed)
+            JumpEvent.Invoke(true);
+        else if (context.phase == InputActionPhase.Canceled)
+            JumpEvent.Invoke(false);
+    }
+
+    // [NEW] Crouch Implementation
+    public void OnCrouch(InputAction.CallbackContext context)
+    {
+        if (context.phase == InputActionPhase.Performed)
+            CrouchEvent.Invoke(true);
+        else if (context.phase == InputActionPhase.Canceled)
+            CrouchEvent.Invoke(false);
+    }
+
     public void OnSwitchCombat(InputAction.CallbackContext context)
     {
         if (context.phase == InputActionPhase.Performed)
             SwitchCombatEvent.Invoke();
     }
 
-    // Unused callbacks required by interface
+    // Unused
     public void OnInteract(InputAction.CallbackContext context) { }
-    public void OnCrouch(InputAction.CallbackContext context) { }
-    public void OnJump(InputAction.CallbackContext context) { }
     public void OnPrevious(InputAction.CallbackContext context) { }
     public void OnNext(InputAction.CallbackContext context) { }
     public void OnSwitchShoulder(InputAction.CallbackContext context) { }

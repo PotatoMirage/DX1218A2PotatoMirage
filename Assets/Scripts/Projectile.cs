@@ -10,16 +10,14 @@ public class Projectile : MonoBehaviour
 
     private void Update()
     {
-        transform.Translate(Vector3.forward * _speed * Time.deltaTime);
+        transform.Translate(_speed * Time.deltaTime * Vector3.right);
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        // Return to pool instead of Destroy()
         _pool?.Release(this.gameObject);
     }
 
-    // Safety timer to release if it hits nothing
     private void OnEnable() => Invoke(nameof(Deactivate), 3f);
     private void Deactivate() { if (gameObject.activeInHierarchy) _pool?.Release(this.gameObject); }
 }

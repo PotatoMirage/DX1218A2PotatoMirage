@@ -8,12 +8,20 @@ public class PlayerFreeLookState : PlayerBaseState
     public override void EnterState()
     {
         Ctx.Animator.SetBool("IsAiming", false);
+        Ctx.Animator.SetBool("IsBlocking", false);
+        Ctx.Animator.SetBool("IsCrouching", false);
+        Ctx.Animator.SetBool("IsJumping", false); // Safety reset
+
         Ctx.FreeLookCamera.gameObject.SetActive(true);
+
+        // [IMPORTANT] Enable Root Motion for walking/running
+        Ctx.UseRootMotion = true;
     }
 
     public override void UpdateState()
     {
         CheckSwitchStates();
+        HandleGravity();
         HandleMovement();
     }
 
@@ -24,59 +32,45 @@ public class PlayerFreeLookState : PlayerBaseState
 
     public override void CheckSwitchStates()
     {
-        // Existing Aim Logic
-        if (Ctx.IsRangedMode && Ctx.IsAimingPressed)
+        if (Ctx.IsRangedMode && Ctx.IsAimingPressed) SwitchState(Factory.Aiming());
+        else if (!Ctx.IsRangedMode && Ctx.IsBlockingPressed) SwitchState(Factory.Blocking());
+        else if (Ctx.IsJumpPressed && Ctx.CharacterController.isGrounded) SwitchState(Factory.Jump());
+        else if (Ctx.IsCrouchPressed) SwitchState(Factory.Crouch());
+    }
+
+    private void HandleGravity()
+    {
+        if (Ctx.CharacterController.isGrounded && Ctx.VerticalVelocity < 0)
         {
-            SwitchState(Factory.Aiming());
+            Ctx.VerticalVelocity = -2f;
         }
-        // New Block Logic
-        else if (!Ctx.IsRangedMode && Ctx.IsBlockingPressed)
-        {
-            SwitchState(Factory.Blocking());
-        }
+        Ctx.VerticalVelocity += Ctx.Stats.Gravity * Time.deltaTime;
     }
 
     private void HandleMovement()
     {
-        // 1. Capture Inputs
         Vector2 input = Ctx.CurrentMovementInput;
         Vector3 movement = new Vector3(input.x, 0, input.y);
 
-        // 2. Calculate the "Target" Animation Speed based on your rules
-        // Default to 0 (Idle)
-        float targetAnimSpeed = 0f;
-
+        // 1. Handle Rotation (Manual)
+        // Root Motion usually handles position well, but turning is often cleaner when script-driven
+        // unless you have high-quality "Turn in Place" animations.
         if (movement.magnitude > 0)
         {
-            // If moving, check if sprinting (1.0) or walking (0.5)
-            targetAnimSpeed = Ctx.IsSprintingPressed ? 1f : 0.5f;
+            float targetAngle = Mathf.Atan2(movement.x, movement.z) * Mathf.Rad2Deg + Ctx.MainCamera.eulerAngles.y;
+            float angle = Mathf.SmoothDampAngle(Ctx.transform.eulerAngles.y, targetAngle, ref Ctx.RotationVelocity, Ctx.Stats.RotationSmoothTime);
+            Ctx.transform.rotation = Quaternion.Euler(0f, angle, 0f);
         }
 
-        // 3. Apply to Animator
-        // We use "0.1f" as dampTime to make the blend smooth, so it doesn't snap instantly
-        Ctx.Animator.SetFloat("Speed", targetAnimSpeed, 0.1f, Time.deltaTime);
+        // 2. Set Animator Parameters (This drives the Root Motion)
+        // Instead of moving the CharacterController, we tell the Animator: "Go Fast"
+        float targetSpeed = 0f;
+        if (movement.magnitude > 0)
+        {
+            targetSpeed = Ctx.IsSprintingPressed ? 1f : 0.5f;
+        }
 
-        // --- Physics Movement Logic (Existing) ---
-        if (movement.magnitude == 0) return;
-
-        float moveSpeed = Ctx.IsSprintingPressed ? Ctx.Stats.RunSpeed : Ctx.Stats.WalkSpeed;
-
-        float targetAngle = Mathf.Atan2(movement.x, movement.z) * Mathf.Rad2Deg +
-                            Ctx.MainCamera.transform.eulerAngles.y;
-
-        float angle = Mathf.SmoothDampAngle(Ctx.transform.eulerAngles.y, targetAngle,
-                                            ref Ctx.RotationVelocity, Ctx.Stats.RotationSmoothTime);
-
-        Ctx.transform.rotation = Quaternion.Euler(0f, angle, 0f);
-
-        Vector3 moveDir = Quaternion.Euler(0f, targetAngle, 0f) * Vector3.forward;
-        Ctx.CharacterController.Move(moveDir.normalized * moveSpeed * Time.deltaTime);
-    }
-
-    private void SwitchState(PlayerBaseState newState)
-    {
-        ExitState();
-        newState.EnterState();
-        Ctx.CurrentState = newState;
+        // We use DampTime to smooth out the transitions
+        Ctx.Animator.SetFloat("Speed", targetSpeed, Ctx.Stats.AnimationDampTime, Time.deltaTime);
     }
 }
