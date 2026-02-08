@@ -2841,8 +2841,8 @@ Transform:
   m_Children: []
   m_Father: {fileID: 762174166}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!65 &56846463
-BoxCollider:
+--- !u!135 &56846463
+SphereCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -2854,13 +2854,13 @@ BoxCollider:
     m_Bits: 0
   m_ExcludeLayers:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 4294967295
   m_LayerOverridePriority: 0
   m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.1, y: 0.1, z: 0.1}
+  m_Radius: 0.5
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &62218469
 GameObject:
@@ -15819,8 +15819,8 @@ Transform:
   m_Children: []
   m_Father: {fileID: 949509739}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!65 &722254927
-BoxCollider:
+--- !u!135 &722254927
+SphereCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -15832,13 +15832,13 @@ BoxCollider:
     m_Bits: 0
   m_ExcludeLayers:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 4294967295
   m_LayerOverridePriority: 0
   m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.1, y: 0.1, z: 0.1}
+  m_Radius: 0.5
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &724663288
 GameObject:
@@ -15904,8 +15904,8 @@ Transform:
   m_Children: []
   m_Father: {fileID: 2084778435}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!65 &727149325
-BoxCollider:
+--- !u!135 &727149325
+SphereCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -15917,13 +15917,13 @@ BoxCollider:
     m_Bits: 0
   m_ExcludeLayers:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 4294967295
   m_LayerOverridePriority: 0
   m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.1, y: 0.1, z: 0.1}
+  m_Radius: 0.5
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &730186925
 GameObject:
@@ -20652,8 +20652,8 @@ Transform:
   m_Children: []
   m_Father: {fileID: 510924003}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!65 &987808371
-BoxCollider:
+--- !u!135 &987808371
+SphereCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -20665,13 +20665,13 @@ BoxCollider:
     m_Bits: 0
   m_ExcludeLayers:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 4294967295
   m_LayerOverridePriority: 0
   m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.1, y: 0.1, z: 0.1}
+  m_Radius: 0.5
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &1000005399
 GameObject:
@@ -21123,8 +21123,8 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1374935408}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!65 &1057545606
-BoxCollider:
+--- !u!135 &1057545606
+SphereCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -21136,13 +21136,13 @@ BoxCollider:
     m_Bits: 0
   m_ExcludeLayers:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 4294967295
   m_LayerOverridePriority: 0
   m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.1, y: 0.1, z: 0.1}
+  m_Radius: 0.5
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &1081430815
 GameObject:
@@ -33219,8 +33219,8 @@ Transform:
   m_Children: []
   m_Father: {fileID: 29052484}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!65 &1787672999
-BoxCollider:
+--- !u!135 &1787672999
+SphereCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -33232,13 +33232,13 @@ BoxCollider:
     m_Bits: 0
   m_ExcludeLayers:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 4294967295
   m_LayerOverridePriority: 0
   m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.1, y: 0.1, z: 0.1}
+  m_Radius: 0.5
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &1789486301
 GameObject:
@@ -46859,6 +46859,10 @@ MonoBehaviour:
   blockSparksPrefab: {fileID: 6321238578687541741, guid: eb76e1f4a4e34684aa4c59b7961c5151, type: 3}
   blockEffectPos: {fileID: 788986385012201530}
   jumpSound: {fileID: 8300000, guid: 8348266e8b3818943a9dca5b0dfef944, type: 3}
+  lockOnRadius: 20
+  enemyLayer:
+    serializedVersion: 2
+    m_Bits: 512
   VerticalVelocity: 0
   RotationVelocity: 0
 --- !u!114 &7759407454845845809
@@ -46981,7 +46985,7 @@ BoxCollider:
     m_Bits: 0
   m_ExcludeLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 512
   m_LayerOverridePriority: 0
   m_IsTrigger: 1
   m_ProvidesContacts: 0
