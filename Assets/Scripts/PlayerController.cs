@@ -9,6 +9,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private PlayerStats stats;
     [SerializeField] private CharacterController characterController;
     [SerializeField] private Animator animator;
+    [SerializeField] private HealthComponent healthComponent;
 
     [Header("Cameras")]
     [SerializeField] private CinemachineCamera freeLookCamera;
@@ -23,6 +24,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private GameObject blockSparksPrefab;
     [Tooltip("Where the block effect appears (e.g. Shield or Chest)")]
     [SerializeField] private Transform blockEffectPos;
+    [SerializeField] private AudioClip jumpSound;
 
     private PlayerBaseState currentState;
     private PlayerStateFactory states;
@@ -147,30 +149,30 @@ public class PlayerController : MonoBehaviour
             audioSource.PlayOneShot(clip);
         }
     }
-
-    // 2. Called by Enemy AttackHandler
+    public void PlayJumpSound()
+    {
+        if (jumpSound != null && audioSource != null)
+        {
+            audioSource.pitch = 1.0f; // Reset pitch for jump
+            audioSource.PlayOneShot(jumpSound);
+        }
+    }
     public void OnTakeHit(int damageAmount)
     {
-        // Check if we are currently in the Block State
+        // 1. Check State (Abstraction: Controller doesn't know details of states, just checks type)
         if (currentState is PlayerBlockState)
         {
-            // --- BLOCKED! ---
-            if (blockHitSound && audioSource)
-                audioSource.PlayOneShot(blockHitSound);
-
-            if (blockSparksPrefab)
-                Instantiate(blockSparksPrefab, blockEffectPos.position, Quaternion.LookRotation(transform.forward));
-
-            // Optional: You could reduce damage here instead of ignoring it
-            // stats.TakeDamage(damageAmount * 0.1f); 
+            // Block Successful
+            if (blockHitSound && audioSource) audioSource.PlayOneShot(blockHitSound);
+            if (blockSparksPrefab) Instantiate(blockSparksPrefab, blockEffectPos.position, Quaternion.LookRotation(transform.forward));
         }
         else
         {
-            // --- NOT BLOCKED (Take Damage) ---
-            // stats.TakeDamage(damageAmount);
-
-            // If you have a hit reaction animation, trigger it here
-            // animator.SetTrigger("HitReaction");
+            // 2. Delegate to HealthComponent (SRP)
+            if (healthComponent != null)
+            {
+                healthComponent.TakeDamage(damageAmount);
+            }
         }
     }
 }

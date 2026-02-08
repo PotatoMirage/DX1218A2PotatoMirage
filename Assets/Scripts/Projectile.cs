@@ -4,7 +4,7 @@ using UnityEngine.Pool;
 public class Projectile : MonoBehaviour
 {
     private IObjectPool<GameObject> _pool;
-    private float _speed = 20f;
+    private float _speed = 100f;
 
     [Header("Effects")]
     [SerializeField] private GameObject hitEffectPrefab;
