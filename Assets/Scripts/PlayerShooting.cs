@@ -52,9 +52,6 @@ public class PlayerShooting : MonoBehaviour
         // 3. Fire
         _nextFireTime = Time.time + _fireRate;
 
-        // Trigger Animation
-        _playerController.Animator.SetTrigger("Shoot");
-
         // Use Object Pool
         GameObject projectile = _projectilePool.Get();
 

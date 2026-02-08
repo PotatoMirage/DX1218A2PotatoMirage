@@ -1143,6 +1143,37 @@ MonoBehaviour:
   mainCamera: {fileID: 330585545}
   player: {fileID: 7759407454845845808}
   crosshairUI: {fileID: 1910453581}
+--- !u!1 &755705526
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 755705527}
+  m_Layer: 3
+  m_Name: firepoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &755705527
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 755705526}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 9.2, y: -1.33, z: -0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 543450653337560010}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0
@@ -4547,7 +4578,8 @@ Transform:
   m_LocalPosition: {x: -8.8, y: 18.85, z: 4.6}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 755705527}
   m_Father: {fileID: 8471805601612847371}
   m_LocalEulerAnglesHint: {x: -8.45, y: 180, z: 90}
 --- !u!1 &562665424758072110
@@ -7536,8 +7568,13 @@ MonoBehaviour:
   _inputReader: {fileID: 11400000, guid: 31b7f1621884c2f479fe7ae473a4b455, type: 2}
   _playerController: {fileID: 7759407454845845808}
   _projectilePrefab: {fileID: 4347876782126520192, guid: 79ba57d23f33f5146b8999382ef81f13, type: 3}
-  _firePoint: {fileID: 543450653337560010}
+  _firePoint: {fileID: 755705527}
   _fireRate: 0.5
+  _aimCamera: {fileID: 330585545}
+  _maxAimDistance: 100
+  _aimLayerMask:
+    serializedVersion: 2
+    m_Bits: 247
 --- !u!114 &7759407454845845811
 MonoBehaviour:
   m_ObjectHideFlags: 0
