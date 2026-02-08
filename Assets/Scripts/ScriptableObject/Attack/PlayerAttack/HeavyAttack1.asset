@@ -14,7 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::AttackConfigSO
   animationStateName: HeavyAttack1
   transitionDuration: 0.1
-  comboUnlockTime: 0.5
-  attackEndTime: 0.9
-  impulseForce: 1
-  damageAmount: 10
+  impulseForce: 0.3
+  damageAmount: 20

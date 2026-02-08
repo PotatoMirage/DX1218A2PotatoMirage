@@ -12,8 +12,9 @@ public class InputReader : ScriptableObject, InputSystem_Actions.IPlayerActions
     public event UnityAction HeavyAttackEvent = delegate { };
     public event UnityAction<bool> AimEvent = delegate { };
     public event UnityAction<bool> SprintEvent = delegate { };
-    public event UnityAction<bool> JumpEvent = delegate { };   // [NEW]
-    public event UnityAction<bool> CrouchEvent = delegate { }; // [NEW]
+    public event UnityAction<bool> JumpEvent = delegate { };
+    public event UnityAction<bool> CrouchEvent = delegate { };
+    public event UnityAction LockOnEvent = delegate { };
 
     public event UnityAction SwitchCombatEvent = delegate { };
 
@@ -33,8 +34,11 @@ public class InputReader : ScriptableObject, InputSystem_Actions.IPlayerActions
     {
         _gameInput?.Player.Disable();
     }
-
-    // --- Interface Implementation ---
+    public void OnLockOn(InputAction.CallbackContext context)
+    {
+        if (context.phase == InputActionPhase.Performed)
+            LockOnEvent.Invoke();
+    }
 
     public void OnMove(InputAction.CallbackContext context)
     {

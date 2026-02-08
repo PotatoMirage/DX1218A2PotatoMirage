@@ -107,7 +107,6 @@ public class PlayerCombat : MonoBehaviour
 
     public void EndAttack()
     {
-        if (_failsafeRoutine != null) StopCoroutine(_failsafeRoutine);
 
         if (_inputBuffered && _comboIndex < _currentChain.Count - 1)
         {
@@ -122,17 +121,12 @@ public class PlayerCombat : MonoBehaviour
 
     private void FinishCombo()
     {
-        if (_failsafeRoutine != null) StopCoroutine(_failsafeRoutine);
-
         _isAttacking = false;
         _comboIndex = 0;
         _comboUnlocked = false;
         _inputBuffered = false;
-
-        playerController.UseRootMotion = false;
         _animator.SetBool("IsAttack", false);
         _animator.SetInteger("AttackStep", 0);
-        // Reset Type to default (optional, but cleaner)
         _animator.SetInteger("AttackType", 0);
 
         OnAttackStateChanged?.Invoke(false);
