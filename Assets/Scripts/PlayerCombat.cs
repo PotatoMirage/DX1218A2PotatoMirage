@@ -5,20 +5,23 @@ using UnityEngine;
 [RequireComponent(typeof(Animator))]
 public class PlayerCombat : MonoBehaviour
 {
-    [Header("Configuration")]
-    [SerializeField] private List<AttackConfigSO> comboChain;
+    [Header("Combo Chains")]
+    [SerializeField] private List<AttackConfigSO> lightComboChain;
+    [SerializeField] private List<AttackConfigSO> heavyComboChain;
 
     [Header("Dependencies")]
-    // [FIX] Abstraction: Use InputReader SO instead of direct InputSystem class
     [SerializeField] private InputReader inputReader;
-    // [FIX] Dependency: Reference Controller to check state
     [SerializeField] private PlayerController playerController;
 
-    // State
-    private List<IEnumerator> _attackQueue = new();
+    // State Variables
+    private List<AttackConfigSO> _currentChain;
+    private int _comboIndex;
     private bool _isAttacking;
-    private int _attackStep;
+    private bool _comboUnlocked;
+    private bool _inputBuffered;
+
     private Animator _animator;
+    private Coroutine _failsafeRoutine;
 
     public event System.Action<bool> OnAttackStateChanged;
 
@@ -29,85 +32,109 @@ public class PlayerCombat : MonoBehaviour
 
     private void OnEnable()
     {
-        // [FIX] Observer Pattern: Subscribe to SO event
         if (inputReader != null)
-            inputReader.AttackEvent += HandleAttackInput;
+        {
+            inputReader.AttackEvent += HandleLightAttack;
+            inputReader.HeavyAttackEvent += HandleHeavyAttack;
+        }
     }
 
     private void OnDisable()
     {
         if (inputReader != null)
-            inputReader.AttackEvent -= HandleAttackInput;
-    }
-
-    // [MODIFIED] Check State before attacking
-    private void HandleAttackInput()
-    {
-        // 1. Guard Clause: If in Ranged Mode, do not perform Melee attacks
-        if (playerController.IsRangedMode) return;
-
-        if (_attackQueue.Count < comboChain.Count)
         {
-            _attackQueue.Add(PerformAttackRoutine(_attackQueue.Count));
-
-            if (_attackQueue.Count == 1 && !_isAttacking)
-            {
-                StartCombo();
-            }
+            inputReader.AttackEvent -= HandleLightAttack;
+            inputReader.HeavyAttackEvent -= HandleHeavyAttack;
         }
     }
 
-    // ... (Rest of your combo logic remains the same) ...
+    // --- Input Handling ---
+
+    private void HandleLightAttack() => HandleInput(lightComboChain);
+    private void HandleHeavyAttack() => HandleInput(heavyComboChain);
+
+    private void HandleInput(List<AttackConfigSO> targetChain)
+    {
+        if (playerController.IsRangedMode) return;
+
+        if (!_isAttacking)
+        {
+            _currentChain = targetChain;
+            StartCombo();
+        }
+        else if (_comboUnlocked)
+        {
+            _inputBuffered = true;
+            _currentChain = targetChain;
+        }
+    }
+
+    // --- Combat Logic ---
 
     private void StartCombo()
     {
         _isAttacking = true;
-        _attackStep = 0;
+        _comboIndex = 0;
+
+        playerController.UseRootMotion = true;
         OnAttackStateChanged?.Invoke(true);
         _animator.SetBool("IsAttack", true);
 
-        if (_attackQueue.Count > 0) StartCoroutine(_attackQueue[0]);
+        PlayAttack(_currentChain[_comboIndex]);
     }
 
-    private IEnumerator PerformAttackRoutine(int stepIndex)
+    private void PlayAttack(AttackConfigSO attackConfig)
     {
-        _attackStep = stepIndex + 1;
-        _animator.SetInteger("AttackStep", _attackStep);
+        _comboUnlocked = false;
+        _inputBuffered = false;
 
-        AttackConfigSO currentAttack = comboChain[stepIndex];
+        // [METHOD A] - Set Parameters to guide the Animator
 
-        while (!IsAnimationReady(currentAttack.animationStateName, currentAttack.comboUnlockTime))
+        // 1. Determine Type: 0 = Light, 1 = Heavy
+        int typeValue = (_currentChain == heavyComboChain) ? 1 : 0;
+        _animator.SetInteger("AttackType", typeValue);
+
+        // 2. Set Step: Triggers the transition in the Animator
+        _animator.SetInteger("AttackStep", _comboIndex + 1);
+    }
+
+    // --- ANIMATION EVENTS ---
+
+    public void UnlockCombo()
+    {
+        _comboUnlocked = true;
+    }
+
+    public void EndAttack()
+    {
+        if (_failsafeRoutine != null) StopCoroutine(_failsafeRoutine);
+
+        if (_inputBuffered && _comboIndex < _currentChain.Count - 1)
         {
-            yield return null;
-        }
-
-        if (_attackStep < _attackQueue.Count)
-        {
-            StartCoroutine(_attackQueue[_attackStep]);
+            _comboIndex++;
+            PlayAttack(_currentChain[_comboIndex]);
         }
         else
         {
-            while (!IsAnimationReady(currentAttack.animationStateName, currentAttack.attackEndTime))
-            {
-                yield return null;
-            }
-            ResetCombo();
+            FinishCombo();
         }
     }
 
-    private bool IsAnimationReady(string stateName, float threshold)
+    private void FinishCombo()
     {
-        AnimatorStateInfo info = _animator.GetCurrentAnimatorStateInfo(1);
-        return info.IsName(stateName) && info.normalizedTime >= threshold;
-    }
+        if (_failsafeRoutine != null) StopCoroutine(_failsafeRoutine);
 
-    private void ResetCombo()
-    {
         _isAttacking = false;
-        _attackStep = 0;
-        _attackQueue.Clear();
+        _comboIndex = 0;
+        _comboUnlocked = false;
+        _inputBuffered = false;
+
+        playerController.UseRootMotion = false;
         _animator.SetBool("IsAttack", false);
         _animator.SetInteger("AttackStep", 0);
+        // Reset Type to default (optional, but cleaner)
+        _animator.SetInteger("AttackType", 0);
+
         OnAttackStateChanged?.Invoke(false);
     }
 }

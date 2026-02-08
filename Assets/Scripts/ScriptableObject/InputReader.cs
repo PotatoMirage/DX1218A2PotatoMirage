@@ -9,6 +9,7 @@ public class InputReader : ScriptableObject, InputSystem_Actions.IPlayerActions
     public event UnityAction<Vector2> MoveEvent = delegate { };
     public event UnityAction<Vector2> LookEvent = delegate { };
     public event UnityAction AttackEvent = delegate { };
+    public event UnityAction HeavyAttackEvent = delegate { };
     public event UnityAction<bool> AimEvent = delegate { };
     public event UnityAction<bool> SprintEvent = delegate { };
     public event UnityAction<bool> JumpEvent = delegate { };   // [NEW]
@@ -50,7 +51,11 @@ public class InputReader : ScriptableObject, InputSystem_Actions.IPlayerActions
         if (context.phase == InputActionPhase.Performed)
             AttackEvent.Invoke();
     }
-
+    public void OnHeavyAttack(InputAction.CallbackContext context)
+    {
+        if (context.phase == InputActionPhase.Performed)
+            HeavyAttackEvent.Invoke();
+    }
     public void OnAim(InputAction.CallbackContext context)
     {
         if (context.phase == InputActionPhase.Performed)

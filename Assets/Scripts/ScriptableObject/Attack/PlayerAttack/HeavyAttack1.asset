@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4bb53ad74578dba45920a779631f3f33, type: 3}
-  m_Name: Attack1
+  m_Name: HeavyAttack1
   m_EditorClassIdentifier: Assembly-CSharp::AttackConfigSO
-  animationStateName: Attack1
-  transitionDuration: 0.9
+  animationStateName: HeavyAttack1
+  transitionDuration: 0.1
   comboUnlockTime: 0.5
-  attackEndTime: 1.4
+  attackEndTime: 0.9
   impulseForce: 1
   damageAmount: 10

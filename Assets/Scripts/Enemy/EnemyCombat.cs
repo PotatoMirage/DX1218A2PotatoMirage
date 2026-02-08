@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -11,8 +10,9 @@ public class EnemyCombat : MonoBehaviour
 
     private Animator _animator;
     private bool _isAttacking;
+    private int _comboIndex;
 
-    // Helper to let the AI know when we are busy
+    // Helper for AI
     public bool IsAttacking => _isAttacking;
 
     private void Awake()
@@ -20,43 +20,48 @@ public class EnemyCombat : MonoBehaviour
         _animator = GetComponent<Animator>();
     }
 
-    // Called by your EnemyController (AI)
+    // Called by EnemyController
     public void StartAttackCombo()
     {
         if (_isAttacking) return;
 
-        StartCoroutine(PerformComboRoutine());
-    }
-
-    private IEnumerator PerformComboRoutine()
-    {
         _isAttacking = true;
+        _comboIndex = 0;
         _animator.SetBool("IsAttack", true);
 
-        // Loop through every attack in the SO list automatically
-        for (int i = 0; i < comboChain.Count; i++)
-        {
-            AttackConfigSO attack = comboChain[i];
-
-            // 1. Trigger Animation
-            _animator.SetInteger("AttackStep", i + 1);
-
-            // 2. Wait for the animation to finish (using the time from your SO)
-            // We use 'attackEndTime' to ensure he finishes the swing before starting the next
-            float timer = 0f;
-            while (timer < attack.attackEndTime)
-            {
-                timer += Time.deltaTime;
-                yield return null;
-            }
-        }
-
-        ResetCombo();
+        PlayAttack(comboChain[_comboIndex]);
     }
+
+    private void PlayAttack(AttackConfigSO attackConfig)
+    {
+        _animator.SetInteger("AttackStep", _comboIndex + 1);
+        _animator.CrossFade(attackConfig.animationStateName, 0.1f);
+    }
+
+    // --- ANIMATION EVENTS ---
+
+    // REQUIRED: Add "EndAttack" event to the end of ALL Enemy Attack Animations
+    public void EndAttack()
+    {
+        // Check if there is another attack in the chain
+        if (_comboIndex < comboChain.Count - 1)
+        {
+            _comboIndex++;
+            PlayAttack(comboChain[_comboIndex]);
+        }
+        else
+        {
+            ResetCombo();
+        }
+    }
+
+    // Optional: Only needed if you want the enemy to rotate mid-attack
+    public void UnlockCombo() { }
 
     private void ResetCombo()
     {
         _isAttacking = false;
+        _comboIndex = 0;
         _animator.SetBool("IsAttack", false);
         _animator.SetInteger("AttackStep", 0);
     }

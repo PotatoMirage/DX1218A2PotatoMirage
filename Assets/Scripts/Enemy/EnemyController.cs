@@ -1,10 +1,21 @@
 using UnityEngine;
 using UnityEngine.AI;
 
+public enum EnemyBehaviorMode
+{
+    Passive,    // Dummy: Stands still, does nothing
+    Sentinel,   // Guard: Stands still, but attacks if player is within range
+    Aggressive  // Hunter: Chases player and attacks
+}
+
 // Requires a NavMeshAgent to move and an Animator for visuals
 [RequireComponent(typeof(NavMeshAgent), typeof(Animator))]
 public class EnemyController : MonoBehaviour
 {
+    [Header("AI Settings")]
+    [Tooltip("Passive = Dummy\nSentinel = Static Attacker\nAggressive = Chaser")]
+    [SerializeField] private EnemyBehaviorMode enemyMode = EnemyBehaviorMode.Aggressive;
+
     [Header("Stats")]
     [SerializeField] private float maxHealth = 100f;
     [SerializeField] private float currentHealth;
@@ -15,6 +26,7 @@ public class EnemyController : MonoBehaviour
     [Header("References")]
     [SerializeField] private Transform playerTarget; // Drag your Player object here
     [SerializeField] private EnemyCombat combatSystem;
+
     // Internal State
     private NavMeshAgent _agent;
     private Animator _animator;
@@ -23,7 +35,6 @@ public class EnemyController : MonoBehaviour
 
     // Animator Parameter Hashes for performance
     private static readonly int SpeedHash = Animator.StringToHash("Speed");
-    private static readonly int AttackHash = Animator.StringToHash("Attack");
     private static readonly int DieHash = Animator.StringToHash("Die");
 
     private void Awake()
@@ -34,45 +45,86 @@ public class EnemyController : MonoBehaviour
 
         // Auto-find player if not assigned
         if (playerTarget == null)
-            playerTarget = GameObject.FindGameObjectWithTag("Player").transform;
+        {
+            GameObject player = GameObject.FindGameObjectWithTag("Player");
+            if (player != null) playerTarget = player.transform;
+        }
     }
 
     private void Update()
     {
-        if (_isDead) return;
+        if (_isDead || playerTarget == null) return;
 
+        // State Machine
+        switch (enemyMode)
+        {
+            case EnemyBehaviorMode.Passive:
+                HandlePassiveState();
+                break;
+
+            case EnemyBehaviorMode.Sentinel:
+                HandleCombatState(canChase: false);
+                break;
+
+            case EnemyBehaviorMode.Aggressive:
+                HandleCombatState(canChase: true);
+                break;
+        }
+    }
+
+    private void HandlePassiveState()
+    {
+        // Force stop and idle animation
+        if (!_agent.isStopped) _agent.isStopped = true;
+        _animator.SetFloat(SpeedHash, 0f);
+    }
+
+    private void HandleCombatState(bool canChase)
+    {
         float distanceToPlayer = Vector3.Distance(transform.position, playerTarget.position);
 
-        // 1. Movement Logic
         if (distanceToPlayer <= attackRange)
         {
-            // Stop moving if in range
+            // --- IN RANGE: Stop and Attack ---
             _agent.isStopped = true;
             _animator.SetFloat(SpeedHash, 0f);
 
-            // Rotate to face player
-            Vector3 direction = (playerTarget.position - transform.position).normalized;
-            direction.y = 0; // Keep rotation flat
-            Quaternion lookRotation = Quaternion.LookRotation(direction);
-            transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * 5f);
+            RotateTowardsPlayer();
 
+            // Attack Logic
             if (Time.time >= _lastAttackTime + attackCooldown && !combatSystem.IsAttacking)
             {
-                // Stop moving while attacking so we don't slide
-                _agent.isStopped = true;
-
-                // Start the combo
                 combatSystem.StartAttackCombo();
-
                 _lastAttackTime = Time.time;
             }
         }
         else
         {
-            // Chase the player
-            _agent.isStopped = false;
-            _agent.SetDestination(playerTarget.position);
-            _animator.SetFloat(SpeedHash, _agent.velocity.magnitude);
+            // --- OUT OF RANGE ---
+            if (canChase)
+            {
+                // Aggressive: Move to player
+                _agent.isStopped = false;
+                _agent.SetDestination(playerTarget.position);
+                _animator.SetFloat(SpeedHash, _agent.velocity.magnitude);
+            }
+            else
+            {
+                // Sentinel: Just stand still and wait
+                _agent.isStopped = true;
+                _animator.SetFloat(SpeedHash, 0f);
+            }
+        }
+    }
+
+    private void RotateTowardsPlayer()
+    {
+        Vector3 direction = (playerTarget.position - transform.position).normalized;
+        direction.y = 0; // Keep rotation flat
+        if (direction != Vector3.zero)
+        {
+            Quaternion lookRotation = Quaternion.LookRotation(direction);
+            transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * 5f);
         }
     }
 
@@ -83,7 +135,7 @@ public class EnemyController : MonoBehaviour
 
         currentHealth -= amount;
 
-        // Optional: Play hit reaction animation here
+        // Optional: Play hit reaction here
         // _animator.SetTrigger("Hit");
 
         if (currentHealth <= 0)
@@ -96,14 +148,11 @@ public class EnemyController : MonoBehaviour
     {
         _isDead = true;
         _agent.isStopped = true;
-        _agent.enabled = false; // Disable navigation
-        GetComponent<Collider>().enabled = false; // Disable collision so player walks through
+        _agent.enabled = false;
+        GetComponent<Collider>().enabled = false;
 
         _animator.SetTrigger(DieHash);
 
-        // Optional: If you want to use your RagdollController, enable it here
-        // GetComponent<RagdollController>()?.ActivateRagdoll(true);
-
-        Destroy(gameObject, 5f); // Clean up body after 5 seconds
+        Destroy(gameObject, 5f);
     }
 }

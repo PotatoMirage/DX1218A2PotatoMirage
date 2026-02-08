@@ -42,7 +42,6 @@ public class AttackHandler : MonoBehaviour
         // [CHANGED] Logic to check layer on 'other.gameObject'
         if (((1 << other.gameObject.layer) & targetLayer) != 0)
         {
-            Debug.Log($"Hit {other.name}!");
             _hasHit = true;
 
             // 1. Camera Shake
