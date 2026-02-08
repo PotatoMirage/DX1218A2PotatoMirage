@@ -12,6 +12,7 @@ public class PlayerCombat : MonoBehaviour
     [Header("Dependencies")]
     [SerializeField] private InputReader inputReader;
     [SerializeField] private PlayerController playerController;
+    [SerializeField] private AttackHandler attackHandler; // ADDED REFERENCE
 
     // State Variables
     private List<AttackConfigSO> _currentChain;
@@ -21,7 +22,6 @@ public class PlayerCombat : MonoBehaviour
     private bool _inputBuffered;
 
     private Animator _animator;
-    private Coroutine _failsafeRoutine;
 
     public event System.Action<bool> OnAttackStateChanged;
 
@@ -88,13 +88,14 @@ public class PlayerCombat : MonoBehaviour
         _comboUnlocked = false;
         _inputBuffered = false;
 
-        // [METHOD A] - Set Parameters to guide the Animator
+        // Pass the config to the handler
+        if (attackHandler != null)
+        {
+            attackHandler.SetupAttack(attackConfig);
+        }
 
-        // 1. Determine Type: 0 = Light, 1 = Heavy
         int typeValue = (_currentChain == heavyComboChain) ? 1 : 0;
         _animator.SetInteger("AttackType", typeValue);
-
-        // 2. Set Step: Triggers the transition in the Animator
         _animator.SetInteger("AttackStep", _comboIndex + 1);
     }
 
@@ -107,7 +108,6 @@ public class PlayerCombat : MonoBehaviour
 
     public void EndAttack()
     {
-
         if (_inputBuffered && _comboIndex < _currentChain.Count - 1)
         {
             _comboIndex++;

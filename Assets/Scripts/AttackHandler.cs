@@ -11,20 +11,24 @@ public class AttackHandler : MonoBehaviour
     [SerializeField] private CinemachineImpulseSource[] source;
 
     [Header("Effects")]
-    [Tooltip("Prefab to instantiate on hit (e.g., blood spatter, sparks)")]
     [SerializeField] private GameObject hitEffectPrefab;
-    [Tooltip("Sound to play on successful hit")]
     [SerializeField] private AudioClip hitSound;
-    [Tooltip("Optional: specific source to play sound. If null, will use PlayClipAtPoint")]
     [SerializeField] private AudioSource audioSource;
 
     private bool _hasHit;
+    // Store damage amount if you want it variable, otherwise use a default
+    private int _currentDamage = 10;
 
     private void Awake()
     {
         DisableCollider();
-        // Try to get AudioSource if not assigned
         if (audioSource == null) audioSource = GetComponent<AudioSource>();
+    }
+
+    public void SetupAttack(AttackConfigSO config)
+    {
+        // If config exists, use its damage, otherwise default to 10
+        _currentDamage = config != null ? config.damageAmount : 10;
     }
 
     public void EnableCollider(int index)
@@ -48,48 +52,39 @@ public class AttackHandler : MonoBehaviour
     {
         if (_hasHit) return;
 
-        // Check layer match
         if (((1 << other.gameObject.layer) & targetLayer) != 0)
         {
             _hasHit = true;
 
-            // --- 1. Visual Effect ---
+            // --- 1. Visual & Audio Effects ---
             if (hitEffectPrefab != null)
             {
-                // Find the point of contact on the other collider closest to our weapon
                 Vector3 hitPoint = other.ClosestPoint(transform.position);
                 Instantiate(hitEffectPrefab, hitPoint, Quaternion.LookRotation(transform.forward));
             }
 
-            // --- 2. Sound Effect ---
-            if (hitSound != null)
+            if (hitSound != null && audioSource != null)
             {
-                if (audioSource != null && audioSource.isActiveAndEnabled)
-                {
-                    audioSource.PlayOneShot(hitSound);
-                }
-                else
-                {
-                    // Fallback if no AudioSource is attached
-                    AudioSource.PlayClipAtPoint(hitSound, transform.position);
-                }
+                audioSource.PlayOneShot(hitSound);
             }
 
-            // --- 3. Camera Shake ---
             if (source.Length > 0 && source[0] != null)
                 source[0].GenerateImpulse(Camera.main.transform.forward);
 
-            // --- 4. Deal Damage ---
-            PlayerController player = other.GetComponent<PlayerController>();
-            if (player != null)
-            {
-                player.OnTakeHit(10);
-            }
+            // --- 2. Deal Damage ONLY (No Knockback) ---
 
-            EnemyController enemy = other.GetComponent<EnemyController>();
-            if (enemy != null)
+            // Search on the object AND its parents (Fixes hitting child colliders)
+            IDamageable damageable = other.GetComponentInParent<IDamageable>();
+
+            if (damageable != null)
             {
-                enemy.TakeDamage(10);
+                damageable.TakeDamage(_currentDamage);
+            }
+            // Fallback for direct references if needed
+            else
+            {
+                PlayerController player = other.GetComponentInParent<PlayerController>();
+                if (player != null) player.OnTakeHit(_currentDamage);
             }
 
             DisableCollider();

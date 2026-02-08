@@ -53,7 +53,7 @@ public class EnemyController : MonoBehaviour
 
     private void Update()
     {
-        if (_isDead || playerTarget == null) return;
+        if (_isDead || playerTarget == null || !_agent.isActiveAndEnabled) return;
 
         // State Machine
         switch (enemyMode)

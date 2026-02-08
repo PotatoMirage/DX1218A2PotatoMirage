@@ -15,4 +15,4 @@ MonoBehaviour:
   animationStateName: Attack2
   transitionDuration: 0.1
   impulseForce: 0.1
-  damageAmount: 10
+  damageAmount: 20

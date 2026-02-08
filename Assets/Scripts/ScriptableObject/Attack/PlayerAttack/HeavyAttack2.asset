@@ -15,4 +15,4 @@ MonoBehaviour:
   animationStateName: HeavyAttack2
   transitionDuration: 0.1
   impulseForce: 0.3
-  damageAmount: 20
+  damageAmount: 30

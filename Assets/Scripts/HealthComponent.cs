@@ -6,23 +6,19 @@ public class HealthComponent : MonoBehaviour, IDamageable
     [Header("Configuration")]
     [SerializeField] private PlayerStats stats;
 
+    // LINK TO RAGDOLL
+    [Header("References")]
+    [SerializeField] private RagdollController ragdollController;
+
     private int _currentHealth;
 
-    // Observer Pattern: Events for UI or other systems to listen to
     public event Action<float> OnHealthPctChanged;
     public event Action OnDeath;
 
     private void Start()
     {
-        // Initialize health from Scriptable Object config
-        if (stats != null)
-        {
-            _currentHealth = stats.MaxHealth;
-        }
-        else
-        {
-            _currentHealth = 100;
-        }
+        if (stats != null) _currentHealth = stats.MaxHealth;
+        else _currentHealth = 100;
     }
 
     public void TakeDamage(int damageAmount)
@@ -30,9 +26,7 @@ public class HealthComponent : MonoBehaviour, IDamageable
         if (_currentHealth <= 0) return;
 
         _currentHealth -= damageAmount;
-
-        // Notify Observers (Cleanly calculates percentage 0.0 to 1.0)
-        float currentPct = (float)_currentHealth / stats.MaxHealth;
+        float currentPct = (float)_currentHealth / (stats != null ? stats.MaxHealth : 100);
         OnHealthPctChanged?.Invoke(currentPct);
 
         if (_currentHealth <= 0)
@@ -45,6 +39,18 @@ public class HealthComponent : MonoBehaviour, IDamageable
     {
         OnDeath?.Invoke();
         Debug.Log($"{gameObject.name} has died.");
-        // Handle death logic (ragdoll, disable controller, etc.)
+
+        // TRIGGER RAGDOLL
+        if (ragdollController != null)
+        {
+            ragdollController.ActivateRagdoll();
+        }
+
+        // Disable logic scripts so they don't interfere
+        EnemyRootMotion motion = GetComponent<EnemyRootMotion>();
+        if (motion != null) motion.enabled = false;
+
+        EnemyController controller = GetComponent<EnemyController>();
+        if (controller != null) controller.enabled = false;
     }
 }
