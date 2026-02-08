@@ -883,6 +883,7 @@ GameObject:
   - component: {fileID: 365771828}
   - component: {fileID: 365771827}
   - component: {fileID: 365771826}
+  - component: {fileID: 365771830}
   - component: {fileID: 365771829}
   m_Layer: 0
   m_Name: ThirdPersonCam
@@ -1093,6 +1094,30 @@ MonoBehaviour:
         DecelTime: 0.25
   PlayerIndex: -1
   AutoEnableInputs: 1
+--- !u!114 &365771830
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 365771824}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 00b2d199b96b516448144ab30fb26aed, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineImpulseListener
+  ApplyAfter: 2
+  ChannelMask: 1
+  Gain: 1
+  Use2DDistance: 0
+  UseCameraSpace: 1
+  SignalCombinationMode: 0
+  ReactionSettings:
+    m_SecondaryNoise: {fileID: 0}
+    AmplitudeGain: 1
+    FrequencyGain: 1
+    Duration: 1
+    m_NoiseOffsets: {x: 0, y: 0, z: 0}
 --- !u!1 &371001384
 GameObject:
   m_ObjectHideFlags: 0
@@ -2210,6 +2235,7 @@ GameObject:
   - component: {fileID: 762174169}
   - component: {fileID: 762174170}
   - component: {fileID: 762174171}
+  - component: {fileID: 762174172}
   m_Layer: 6
   m_Name: Enemy
   m_TagString: Untagged
@@ -2240,7 +2266,7 @@ Rigidbody:
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
   m_UseGravity: 1
-  m_IsKinematic: 1
+  m_IsKinematic: 0
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
@@ -2282,7 +2308,7 @@ Animator:
   m_ApplyRootMotion: 1
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
-  m_AnimatePhysics: 1
+  m_AnimatePhysics: 0
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
@@ -2323,7 +2349,7 @@ MonoBehaviour:
   attackCooldown: 2
   damageToPlayer: 10
   playerTarget: {fileID: 7759407454845845800}
-  combatSystem: {fileID: 0}
+  combatSystem: {fileID: 762174171}
 --- !u!114 &762174168
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2425,10 +2451,31 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyCombat
   comboChain:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: 11400000, guid: 64fc3ffa79bd36044b9eebdf9980253c, type: 2}
+  - {fileID: 11400000, guid: d914a9d6451b50843b08f35770b7a02d, type: 2}
+  - {fileID: 11400000, guid: dab26b9670994d147bd7b58e557e2242, type: 2}
   damage: 10
+--- !u!65 &762174172
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 762174162}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 503
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1, y: 1, z: 1}
+  m_Center: {x: 0, y: 0.92, z: 0.95}
 --- !u!1 &817976191
 GameObject:
   m_ObjectHideFlags: 0
@@ -6168,7 +6215,8 @@ GameObject:
   - component: {fileID: 1608066493}
   - component: {fileID: 1608066492}
   - component: {fileID: 1608066494}
-  m_Layer: 6
+  - component: {fileID: 1608066495}
+  m_Layer: 8
   m_Name: Human_Shield
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -6256,17 +6304,44 @@ BoxCollider:
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 8
   m_ExcludeLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 64
   m_LayerOverridePriority: 0
   m_IsTrigger: 1
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Size: {x: 0.63054055, y: 0.62023956, z: 0.0508564}
   m_Center: {x: -0.0000016717055, y: -0.0000018469015, z: -0.106409915}
+--- !u!54 &1608066495
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1608066490}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 8
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 64
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
 --- !u!1 &1619596558
 GameObject:
   m_ObjectHideFlags: 0
@@ -7224,7 +7299,7 @@ GameObject:
   - component: {fileID: 1950921985}
   - component: {fileID: 1950921984}
   - component: {fileID: 1950921987}
-  m_Layer: 6
+  m_Layer: 8
   m_Name: Human_Sword
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -7312,14 +7387,14 @@ BoxCollider:
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 8
   m_ExcludeLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 64
   m_LayerOverridePriority: 0
   m_IsTrigger: 1
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Size: {x: 0.29117996, y: 1.2803785, z: 0.14509314}
   m_Center: {x: -0.00022504745, y: 0.40776882, z: -0.0000000144219925}
@@ -9365,7 +9440,7 @@ Animator:
   m_ApplyRootMotion: 1
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
-  m_AnimatePhysics: 1
+  m_AnimatePhysics: 0
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
@@ -9816,7 +9891,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8471805601612847371}
   - component: {fileID: 8471805601612847372}
-  m_Layer: 3
+  m_Layer: 8
   m_Name: mixamorig:RightHand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -10184,7 +10259,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3897916410953020160}
   - component: {fileID: 5928157338020949776}
-  m_Layer: 3
+  m_Layer: 8
   m_Name: mixamorig:LeftHand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -10208,7 +10283,7 @@ SphereCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 1
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Radius: 20
   m_Center: {x: 0, y: 9.85, z: 0}
@@ -10586,6 +10661,7 @@ GameObject:
   - component: {fileID: 7759407454845845810}
   - component: {fileID: 7759407454845845811}
   - component: {fileID: 7759407454845845812}
+  - component: {fileID: 7759407454845845813}
   m_Layer: 3
   m_Name: Player
   m_TagString: Untagged
@@ -11211,6 +11287,27 @@ MonoBehaviour:
     DissipationDistance: 100
     PropagationSpeed: 343
   DefaultVelocity: {x: 0, y: -1, z: 0}
+--- !u!65 &7759407454845845813
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6982025643393981330}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 100, y: 100, z: 100}
+  m_Center: {x: 0, y: 106.1, z: 53.63}
 --- !u!1 &7783591884193949754
 GameObject:
   m_ObjectHideFlags: 0
@@ -11442,7 +11539,7 @@ SphereCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 1
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Radius: 20
   m_Center: {x: 0, y: 12.2, z: 0}

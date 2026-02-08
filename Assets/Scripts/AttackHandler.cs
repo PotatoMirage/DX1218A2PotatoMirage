@@ -4,7 +4,6 @@ using Unity.Cinemachine;
 public class AttackHandler : MonoBehaviour
 {
     [Header("Settings")]
-    // [NEW] Select "Player" layer for Enemies, and "Target" layer for Player
     [SerializeField] private LayerMask targetLayer;
 
     [Header("References")]
@@ -35,14 +34,15 @@ public class AttackHandler : MonoBehaviour
         }
     }
 
-    private void OnCollisionEnter(Collision collision)
+    // [CHANGED] From OnCollisionEnter to OnTriggerEnter
+    private void OnTriggerEnter(Collider other)
     {
         if (_hasHit) return;
 
-        // [NEW] specific layer check using the LayerMask variable
-        if (((1 << collision.gameObject.layer) & targetLayer) != 0)
+        // [CHANGED] Logic to check layer on 'other.gameObject'
+        if (((1 << other.gameObject.layer) & targetLayer) != 0)
         {
-            Debug.Log($"Hit {collision.gameObject.name}!");
+            Debug.Log($"Hit {other.name}!");
             _hasHit = true;
 
             // 1. Camera Shake
@@ -50,23 +50,23 @@ public class AttackHandler : MonoBehaviour
                 source[0].GenerateImpulse(Camera.main.transform.forward);
 
             // 2. Deal Damage
-            // Check if we hit the Player
-            PlayerController player = collision.gameObject.GetComponent<PlayerController>();
+            // Check for Player
+            PlayerController player = other.GetComponent<PlayerController>();
             if (player != null)
             {
-                // Add a TakeDamage method to your PlayerStats or PlayerController!
-                Debug.Log("Dealt damage to Player");
                 // player.Stats.TakeDamage(10); 
             }
 
-            // Check if we hit an Enemy (reusing logic just in case)
-            EnemyController enemy = collision.gameObject.GetComponent<EnemyController>();
+            // Check for Enemy
+            EnemyController enemy = other.GetComponent<EnemyController>();
             if (enemy != null)
             {
                 enemy.TakeDamage(10);
             }
 
+            // Optional: Disable immediately if you only want 1 hit per swing
             DisableCollider();
         }
     }
+    
 }
