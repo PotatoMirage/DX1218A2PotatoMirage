@@ -3,34 +3,35 @@ using Unity.Cinemachine;
 
 public class AttackHandler : MonoBehaviour
 {
-    [SerializeField] private Collider[] detectors; // Assign your Sword SphereColliders here
+    [Header("Settings")]
+    // [NEW] Select "Player" layer for Enemies, and "Target" layer for Player
+    [SerializeField] private LayerMask targetLayer;
+
+    [Header("References")]
+    [SerializeField] private Collider[] detectors;
     [SerializeField] private CinemachineImpulseSource[] source;
 
-    // Safety check to prevent double-hitting the same enemy in one swing
     private bool _hasHit;
 
     private void Awake()
     {
-        // Ensure all are disabled at start
         DisableCollider();
     }
 
-    // Called by Animation Event (Start of active swing)
     public void EnableCollider(int index)
     {
-        _hasHit = false; // Reset hit flag for new swing
-        if (index < detectors.Length)
+        _hasHit = false;
+        if (index < detectors.Length && detectors[index] != null)
         {
             detectors[index].enabled = true;
         }
     }
 
-    // Called by Animation Event (End of active swing)
     public void DisableCollider()
     {
         foreach (Collider detector in detectors)
         {
-            detector.enabled = false;
+            if (detector != null) detector.enabled = false;
         }
     }
 
@@ -38,22 +39,33 @@ public class AttackHandler : MonoBehaviour
     {
         if (_hasHit) return;
 
-        // 2. Check Layer (Using CompareTag is often cheaper, but LayerMask is fine too)
-        // Ensure your Enemy GameObject is on the "Target" layer!
-        if (((1 << collision.gameObject.layer) & LayerMask.GetMask("Target")) != 0)
+        // [NEW] specific layer check using the LayerMask variable
+        if (((1 << collision.gameObject.layer) & targetLayer) != 0)
         {
-            Debug.Log($"Hit {collision}!");
-
+            Debug.Log($"Hit {collision.gameObject.name}!");
             _hasHit = true;
 
-            // Generate Impulse (Shake)
-            // Use index 0 for simplicity, or track which weapon is active
-            if (source.Length > 0) source[0].GenerateImpulse(Camera.main.transform.forward);
+            // 1. Camera Shake
+            if (source.Length > 0 && source[0] != null)
+                source[0].GenerateImpulse(Camera.main.transform.forward);
 
-            // Apply Damage logic here
-            // e.g., other.GetComponent<Health>()?.TakeDamage(10);
+            // 2. Deal Damage
+            // Check if we hit the Player
+            PlayerController player = collision.gameObject.GetComponent<PlayerController>();
+            if (player != null)
+            {
+                // Add a TakeDamage method to your PlayerStats or PlayerController!
+                Debug.Log("Dealt damage to Player");
+                // player.Stats.TakeDamage(10); 
+            }
 
-            // Disable immediately if you only want 1 hit per swing
+            // Check if we hit an Enemy (reusing logic just in case)
+            EnemyController enemy = collision.gameObject.GetComponent<EnemyController>();
+            if (enemy != null)
+            {
+                enemy.TakeDamage(10);
+            }
+
             DisableCollider();
         }
     }
