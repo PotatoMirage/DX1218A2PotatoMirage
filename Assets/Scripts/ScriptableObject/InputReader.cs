@@ -15,7 +15,7 @@ public class InputReader : ScriptableObject, InputSystem_Actions.IPlayerActions
     public event UnityAction<bool> JumpEvent = delegate { };
     public event UnityAction<bool> CrouchEvent = delegate { };
     public event UnityAction LockOnEvent = delegate { };
-
+    public event UnityAction<bool> RollEvent = delegate { };
     public event UnityAction SwitchCombatEvent = delegate { };
 
     private InputSystem_Actions _gameInput;
@@ -99,7 +99,13 @@ public class InputReader : ScriptableObject, InputSystem_Actions.IPlayerActions
         if (context.phase == InputActionPhase.Performed)
             SwitchCombatEvent.Invoke();
     }
-
+    public void OnRoll(InputAction.CallbackContext context)
+    {
+        if (context.phase == InputActionPhase.Performed)
+            RollEvent.Invoke(true);
+        else if (context.phase == InputActionPhase.Canceled)
+            RollEvent.Invoke(false);
+    }
     // Unused
     public void OnInteract(InputAction.CallbackContext context) { }
     public void OnPrevious(InputAction.CallbackContext context) { }

@@ -32,6 +32,11 @@ public class PlayerFreeLookState : PlayerBaseState
 
     public override void CheckSwitchStates()
     {
+        if (Ctx.IsRollPressed && Ctx.CharacterController.isGrounded)
+        {
+            SwitchState(Factory.Roll());
+            return;
+        }
         if (Ctx.IsRangedMode && Ctx.IsAimingPressed) SwitchState(Factory.Aiming());
         else if (!Ctx.IsRangedMode && Ctx.IsBlockingPressed) SwitchState(Factory.Blocking());
         else if (Ctx.IsJumpPressed && Ctx.CharacterController.isGrounded) SwitchState(Factory.Jump());
