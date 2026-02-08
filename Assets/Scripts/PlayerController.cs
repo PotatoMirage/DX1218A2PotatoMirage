@@ -4,25 +4,22 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    [Header("Dependencies")]
     [SerializeField] private InputReader inputReader;
     [SerializeField] private PlayerStats stats;
     [SerializeField] private CharacterController characterController;
     [SerializeField] private Animator animator;
     [SerializeField] private HealthComponent healthComponent;
 
-    [Header("Cameras")]
     [SerializeField] private CinemachineCamera freeLookCamera;
     [SerializeField] private CinemachineCamera aimCamera;
     [SerializeField] private Transform mainCamera;
 
-    [Header("Audio & VFX")]
     [SerializeField] private AudioSource audioSource;
-    [Tooltip("Assign multiple clips for variation")]
+
     [SerializeField] private AudioClip[] footstepSounds;
     [SerializeField] private AudioClip blockHitSound;
     [SerializeField] private GameObject blockSparksPrefab;
-    [Tooltip("Where the block effect appears (e.g. Shield or Chest)")]
+
     [SerializeField] private Transform blockEffectPos;
     [SerializeField] private AudioClip jumpSound;
 
@@ -30,7 +27,6 @@ public class PlayerController : MonoBehaviour
     private PlayerStateFactory states;
     public PlayerStats Stats => stats;
 
-    // Data Inputs
     public Vector2 CurrentMovementInput { get; private set; }
     public bool IsAimingPressed { get; private set; }
     public bool IsBlockingPressed { get; private set; }
@@ -41,15 +37,12 @@ public class PlayerController : MonoBehaviour
     public bool IsLockedOn { get; set; } = false;
     public bool IsRollPressed { get; private set; }
 
-    // Physics State
     public float VerticalVelocity;
     public float RotationVelocity;
     public bool UseRootMotion { get; set; } = false;
 
-    // Observer: Notify systems
     public event System.Action<bool> OnCombatModeChanged;
 
-    // Getters
     public Animator Animator => animator;
     public CharacterController CharacterController => characterController;
     public CinemachineCamera FreeLookCamera => freeLookCamera;
@@ -67,9 +60,8 @@ public class PlayerController : MonoBehaviour
         currentState = states.FreeLook();
         if (mainCamera == null) mainCamera = UnityEngine.Camera.main.transform;
 
-        // Auto-get AudioSource if missing
         if (audioSource == null) audioSource = GetComponent<AudioSource>();
-        if (blockEffectPos == null) blockEffectPos = transform; // Default to player root
+        if (blockEffectPos == null) blockEffectPos = transform;
     }
 
     private void Start() => currentState.EnterState();
@@ -135,16 +127,11 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    // ---------------- NEW METHODS ----------------
-
-    // 1. Called by Animation Events
     public void PlayFootstep()
     {
         if (footstepSounds.Length > 0 && audioSource != null)
         {
-            // Pick a random footstep
             AudioClip clip = footstepSounds[Random.Range(0, footstepSounds.Length)];
-            // Randomize pitch slightly for realism
             audioSource.pitch = Random.Range(0.9f, 1.1f);
             audioSource.PlayOneShot(clip);
         }
@@ -153,22 +140,19 @@ public class PlayerController : MonoBehaviour
     {
         if (jumpSound != null && audioSource != null)
         {
-            audioSource.pitch = 1.0f; // Reset pitch for jump
+            audioSource.pitch = 1.0f;
             audioSource.PlayOneShot(jumpSound);
         }
     }
     public void OnTakeHit(int damageAmount)
     {
-        // 1. Check State (Abstraction: Controller doesn't know details of states, just checks type)
         if (currentState is PlayerBlockState)
         {
-            // Block Successful
             if (blockHitSound && audioSource) audioSource.PlayOneShot(blockHitSound);
             if (blockSparksPrefab) Instantiate(blockSparksPrefab, blockEffectPos.position, Quaternion.LookRotation(transform.forward));
         }
         else
         {
-            // 2. Delegate to HealthComponent (SRP)
             if (healthComponent != null)
             {
                 healthComponent.TakeDamage(damageAmount);

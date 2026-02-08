@@ -1,27 +1,27 @@
 using UnityEngine;
-using UnityEngine.Pool; // Unity's built-in Object Pool
+using UnityEngine.Pool;
 
 public class PlayerShooting : MonoBehaviour
 {
-    [Header("Settings")]
-    [SerializeField] private InputReader _inputReader;
-    [SerializeField] private PlayerController _playerController;
-    [SerializeField] private GameObject _projectilePrefab;
-    [SerializeField] private Transform _firePoint;
-    [SerializeField] private float _fireRate = 0.5f;
+    [SerializeField] private InputReader inputReader;
+    [SerializeField] private PlayerController playerController;
+    [SerializeField] private GameObject projectilePrefab;
+    [SerializeField] private Transform firePoint;
+    [SerializeField] private float fireRate = 0.5f;
 
-    private float _nextFireTime;
-    private IObjectPool<GameObject> _projectilePool;
-
+    private float nextFireTime;
+    private IObjectPool<GameObject> projectilePool;
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip shootClip;
     private void Awake()
     {
-        // Initialize Object Pool
-        _projectilePool = new ObjectPool<GameObject>(
-            createFunc: () => Instantiate(_projectilePrefab),
+        projectilePool = new ObjectPool<GameObject>(
+            createFunc: () => Instantiate(projectilePrefab),
             actionOnGet: (obj) => {
                 obj.SetActive(true);
-                obj.transform.position = _firePoint.position;
-                obj.transform.rotation = _firePoint.rotation;
+                obj.transform.SetPositionAndRotation(firePoint.position, firePoint.rotation);
+                Projectile p = obj.GetComponent<Projectile>();
+                if (p != null) p.ResetProjectile();
             },
             actionOnRelease: (obj) => obj.SetActive(false),
             actionOnDestroy: (obj) => Destroy(obj),
@@ -33,31 +33,25 @@ public class PlayerShooting : MonoBehaviour
 
     private void OnEnable()
     {
-        _inputReader.AttackEvent += HandleShooting;
+        inputReader.AttackEvent += HandleShooting;
     }
 
     private void OnDisable()
     {
-        _inputReader.AttackEvent -= HandleShooting;
+        inputReader.AttackEvent -= HandleShooting;
     }
 
     private void HandleShooting()
     {
-        // 1. Guard: Only shoot if in Ranged Mode
-        if (!_playerController.IsRangedMode) return;
+        if (!playerController.IsRangedMode) return;
 
-        // 2. Rate Limit
-        if (Time.time < _nextFireTime) return;
+        if (Time.time < nextFireTime) return;
 
-        // 3. Fire
-        _nextFireTime = Time.time + _fireRate;
+        nextFireTime = Time.time + fireRate;
 
-        // Use Object Pool
-        GameObject projectile = _projectilePool.Get();
+        GameObject projectile = projectilePool.Get();
 
-        // Pass the pool back to the projectile so it can release itself later
-        // (Assuming Projectile script has a reference to the pool or you handle release here)
-        var projScript = projectile.GetComponent<Projectile>();
-        if (projScript != null) projScript.SetPool(_projectilePool);
+        Projectile projScript = projectile.GetComponent<Projectile>();
+        if (projScript != null) projScript.SetPool(projectilePool);
     }
 }

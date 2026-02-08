@@ -9,18 +9,17 @@ public class EnemyRootMotion : MonoBehaviour
     [SerializeField] private float stopDistance = 0.5f;
     [SerializeField] private float chaseBuffer = 5.5f;
 
-    private NavMeshAgent _agent;
-    private Animator _animator;
-    private readonly int _speedHash = Animator.StringToHash("Speed");
-    private bool _isStopped = false;
+    private NavMeshAgent agent;
+    private Animator animator;
+    private readonly int speedHash = Animator.StringToHash("Speed");
+    private bool isStopped = false;
 
-    // Helper to check if we can move
-    private bool IsAgentValid => _agent != null && _agent.isOnNavMesh && _agent.isActiveAndEnabled;
+    private bool IsAgentValid => agent != null && agent.isOnNavMesh && agent.isActiveAndEnabled;
 
     private void Awake()
     {
-        _agent = GetComponent<NavMeshAgent>();
-        _animator = GetComponent<Animator>();
+        agent = GetComponent<NavMeshAgent>();
+        animator = GetComponent<Animator>();
 
         if (target == null && GameObject.FindWithTag("Player"))
             target = GameObject.FindWithTag("Player").transform;
@@ -30,49 +29,47 @@ public class EnemyRootMotion : MonoBehaviour
     {
         if (IsAgentValid)
         {
-            _agent.updatePosition = false;
-            _agent.updateRotation = true;
+            agent.updatePosition = false;
+            agent.updateRotation = true;
         }
     }
 
     private void Update()
     {
-        // SAFETY CHECK: If agent is disabled (dead), stop doing logic
         if (!IsAgentValid || target == null) return;
 
         float distanceToTarget = Vector3.Distance(transform.position, target.position);
 
-        if (_isStopped)
+        if (isStopped)
         {
-            if (distanceToTarget > stopDistance + chaseBuffer) _isStopped = false;
+            if (distanceToTarget > stopDistance + chaseBuffer) isStopped = false;
         }
         else
         {
-            if (distanceToTarget < stopDistance) _isStopped = true;
+            if (distanceToTarget < stopDistance) isStopped = true;
         }
 
-        if (!_isStopped)
+        if (!isStopped)
         {
-            _agent.SetDestination(target.position);
+            agent.SetDestination(target.position);
         }
         else
         {
-            _agent.ResetPath();
+            agent.ResetPath();
         }
 
-        float desiredSpeed = _isStopped ? 0f : Vector3.Dot(transform.forward, _agent.desiredVelocity);
+        float desiredSpeed = isStopped ? 0f : Vector3.Dot(transform.forward, agent.desiredVelocity);
         desiredSpeed = Mathf.Max(0f, desiredSpeed);
-        _animator.SetFloat(_speedHash, desiredSpeed, 0.1f, Time.deltaTime);
+        animator.SetFloat(speedHash, desiredSpeed, 0.1f, Time.deltaTime);
     }
 
     private void OnAnimatorMove()
     {
-        // SAFETY CHECK here too
         if (!IsAgentValid) return;
 
-        Vector3 position = _animator.rootPosition;
-        position.y = _agent.nextPosition.y;
+        Vector3 position = animator.rootPosition;
+        position.y = agent.nextPosition.y;
         transform.position = position;
-        _agent.nextPosition = transform.position;
+        agent.nextPosition = transform.position;
     }
 }

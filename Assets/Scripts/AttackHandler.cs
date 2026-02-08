@@ -1,23 +1,20 @@
 using UnityEngine;
 using Unity.Cinemachine;
 
+[RequireComponent(typeof(AudioSource))]
 public class AttackHandler : MonoBehaviour
 {
-    [Header("Settings")]
     [SerializeField] private LayerMask targetLayer;
 
-    [Header("References")]
     [SerializeField] private Collider[] detectors;
     [SerializeField] private CinemachineImpulseSource[] source;
 
-    [Header("Effects")]
     [SerializeField] private GameObject hitEffectPrefab;
     [SerializeField] private AudioClip hitSound;
     [SerializeField] private AudioSource audioSource;
 
-    private bool _hasHit;
-    // Store damage amount if you want it variable, otherwise use a default
-    private int _currentDamage = 10;
+    private bool hasHit;
+    private int currentDamage = 10;
 
     private void Awake()
     {
@@ -27,13 +24,12 @@ public class AttackHandler : MonoBehaviour
 
     public void SetupAttack(AttackConfigSO config)
     {
-        // If config exists, use its damage, otherwise default to 10
-        _currentDamage = config != null ? config.damageAmount : 10;
+        currentDamage = config != null ? config.damageAmount : 10;
     }
 
     public void EnableCollider(int index)
     {
-        _hasHit = false;
+        hasHit = false;
         if (index < detectors.Length && detectors[index] != null)
         {
             detectors[index].enabled = true;
@@ -50,13 +46,12 @@ public class AttackHandler : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (_hasHit) return;
+        if (hasHit) return;
 
         if (((1 << other.gameObject.layer) & targetLayer) != 0)
         {
-            _hasHit = true;
+            hasHit = true;
 
-            // --- 1. Visual & Audio Effects ---
             if (hitEffectPrefab != null)
             {
                 Vector3 hitPoint = other.ClosestPoint(transform.position);
@@ -71,20 +66,16 @@ public class AttackHandler : MonoBehaviour
             if (source.Length > 0 && source[0] != null)
                 source[0].GenerateImpulse(Camera.main.transform.forward);
 
-            // --- 2. Deal Damage ONLY (No Knockback) ---
-
-            // Search on the object AND its parents (Fixes hitting child colliders)
             IDamageable damageable = other.GetComponentInParent<IDamageable>();
 
             if (damageable != null)
             {
-                damageable.TakeDamage(_currentDamage);
+                damageable.TakeDamage(currentDamage);
             }
-            // Fallback for direct references if needed
             else
             {
                 PlayerController player = other.GetComponentInParent<PlayerController>();
-                if (player != null) player.OnTakeHit(_currentDamage);
+                if (player != null) player.OnTakeHit(currentDamage);
             }
 
             DisableCollider();

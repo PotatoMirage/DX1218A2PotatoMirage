@@ -1,14 +1,14 @@
 using UnityEngine;
 
-public class PlayerAimingState : PlayerBaseState
+public class PlayerBlockState : PlayerBaseState
 {
-    public PlayerAimingState(PlayerController context, PlayerStateFactory factory)
+    public PlayerBlockState(PlayerController context, PlayerStateFactory factory)
         : base(context, factory) { }
 
     public override void EnterState()
     {
-        Ctx.Animator.SetBool("IsAiming", true);
-        Ctx.AimCamera.gameObject.SetActive(true);
+        Ctx.FreeLookCamera.gameObject.SetActive(true);
+        Ctx.Animator.SetBool("IsBlocking", true);
     }
 
     public override void UpdateState()
@@ -20,17 +20,20 @@ public class PlayerAimingState : PlayerBaseState
 
     public override void ExitState()
     {
-        Ctx.AimCamera.gameObject.SetActive(false);
+        Ctx.Animator.SetBool("IsBlocking", false);
+        Ctx.FreeLookCamera.gameObject.SetActive(false);
     }
 
     public override void CheckSwitchStates()
     {
-        if (!Ctx.IsAimingPressed)
+        if (!Ctx.IsBlockingPressed)
         {
             SwitchState(Factory.FreeLook());
         }
-        // Optional: Allow jumping while aiming?
-        // if (Ctx.IsJumpPressed && Ctx.CharacterController.isGrounded) SwitchState(Factory.Jump());
+        else if (Ctx.IsRangedMode)
+        {
+            SwitchState(Factory.FreeLook());
+        }
     }
 
     private void HandleRotation()
@@ -43,22 +46,19 @@ public class PlayerAimingState : PlayerBaseState
     {
         Vector2 input = Ctx.CurrentMovementInput;
 
-        // --- Gravity ---
         if (Ctx.CharacterController.isGrounded && Ctx.VerticalVelocity < 0)
         {
             Ctx.VerticalVelocity = -2f;
         }
         Ctx.VerticalVelocity += Ctx.Stats.Gravity * Time.deltaTime;
 
-        // --- Movement ---
         Vector3 moveDirection = Ctx.transform.forward * input.y + Ctx.transform.right * input.x;
+        moveDirection.y = 0;
 
-        // Combine Strafing + Gravity
-        Vector3 finalMove = (moveDirection * Ctx.Stats.AimingWalkSpeed) + (Vector3.up * Ctx.VerticalVelocity);
+        Vector3 finalMove = (moveDirection * Ctx.Stats.BlockSpeed) + (Vector3.up * Ctx.VerticalVelocity);
 
         Ctx.CharacterController.Move(finalMove * Time.deltaTime);
 
-        // Animation
         Ctx.Animator.SetFloat("InputX", input.x, Ctx.Stats.AnimationDampTime, Time.deltaTime);
         Ctx.Animator.SetFloat("InputY", input.y, Ctx.Stats.AnimationDampTime, Time.deltaTime);
     }

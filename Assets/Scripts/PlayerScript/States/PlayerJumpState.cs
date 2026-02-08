@@ -2,15 +2,15 @@ using UnityEngine;
 
 public class PlayerJumpState : PlayerBaseState
 {
-    private float _minJumpDuration = 0.5f;
-    private float _elapsedTime;
+    private float minJumpDuration = 0.5f;
+    private float elapsedTime;
 
     public PlayerJumpState(PlayerController context, PlayerStateFactory factory)
         : base(context, factory) { }
 
     public override void EnterState()
     {
-        _elapsedTime = 0f;
+        elapsedTime = 0f;
         Ctx.FreeLookCamera.gameObject.SetActive(true);
         Ctx.Animator.SetBool("IsJumping", true);
         Ctx.UseRootMotion = true;
@@ -20,7 +20,7 @@ public class PlayerJumpState : PlayerBaseState
 
     public override void UpdateState()
     {
-        _elapsedTime += Time.deltaTime;
+        elapsedTime += Time.deltaTime;
         HandleGravity();
         CheckSwitchStates();
     }
@@ -32,7 +32,7 @@ public class PlayerJumpState : PlayerBaseState
 
     public override void CheckSwitchStates()
     {
-        if (_elapsedTime < _minJumpDuration) return;
+        if (elapsedTime < minJumpDuration) return;
 
         if (Ctx.CharacterController.isGrounded)
         {

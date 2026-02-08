@@ -4,7 +4,7 @@ using UnityEngine;
 public class AttackConfigSO : ScriptableObject
 {
     [Header("Animation")]
-    public string animationStateName; // e.g., "Attack1"
+    public string animationStateName;
     public float transitionDuration = 0.1f;
 
     [Header("Impact")]

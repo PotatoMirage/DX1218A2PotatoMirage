@@ -137,13 +137,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 657d8c5f3d428c44ca7fe8eac2343b63, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Projectile
-  _speed: 50
-  _lifetime: 10
-  _steeringTime: 0.05
-  _seekWeight: 0.9
-  _lookAheadDistance: 5
-  _avoidDistance: 3
-  _obstacleAvoidanceWeight: 0.2
+  _lifeTime: 5
+  _hitMask:
+    serializedVersion: 2
+    m_Bits: 759
   hitEffectPrefab: {fileID: 1743301284569550, guid: ad2ab49d0a2a17148bd51c93d977bdbc, type: 3}
   hitSound: {fileID: 8300000, guid: a216f3e38782b8d4eacd769e76068e15, type: 3}
 --- !u!135 &3989904465778495898

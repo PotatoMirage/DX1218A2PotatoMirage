@@ -10,7 +10,6 @@ public class PlayerCrouchState : PlayerBaseState
         Ctx.Animator.SetBool("IsCrouching", true);
         Ctx.FreeLookCamera.gameObject.SetActive(true);
 
-        // [FIX] Enable Root Motion for Crouching
         Ctx.UseRootMotion = true;
     }
 
@@ -51,9 +50,8 @@ public class PlayerCrouchState : PlayerBaseState
     private void HandleMovement()
     {
         Vector2 input = Ctx.CurrentMovementInput;
-        Vector3 movement = new Vector3(input.x, 0, input.y);
+        Vector3 movement = new(input.x, 0, input.y);
 
-        // 1. Rotation (Script-driven for better control)
         if (movement.magnitude > 0)
         {
             float targetAngle = Mathf.Atan2(movement.x, movement.z) * Mathf.Rad2Deg + Ctx.MainCamera.eulerAngles.y;
@@ -61,10 +59,6 @@ public class PlayerCrouchState : PlayerBaseState
             Ctx.transform.rotation = Quaternion.Euler(0f, angle, 0f);
         }
 
-        // 2. Animator Input (Drives Root Motion)
-        // Set Speed parameter to a low value (e.g., 0.5 or lower) to trigger Crouch Walk
-        // You might need a specific "CrouchSpeed" parameter in your Animator if "Speed" controls standing walk.
-        // Assuming "Speed" is shared:
         float targetSpeed = movement.magnitude > 0 ? 0.5f : 0f;
 
         Ctx.Animator.SetFloat("Speed", targetSpeed, 0.1f, Time.deltaTime);

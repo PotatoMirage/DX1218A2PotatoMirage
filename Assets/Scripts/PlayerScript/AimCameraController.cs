@@ -58,7 +58,6 @@ public class AimCameraController : MonoBehaviour
         if (switchShouldInput != null && switchShouldInput.action != null)
         {
             switchShouldInput.action.performed -= OnSwitchShoulder;
-            // Usually simpler to just disable the action or leave it enabled depending on setup
         }
     }
 

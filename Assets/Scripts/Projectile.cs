@@ -3,38 +3,59 @@ using UnityEngine.Pool;
 
 public class Projectile : MonoBehaviour
 {
-    private IObjectPool<GameObject> _pool;
-    private float _speed = 100f;
+    private IObjectPool<GameObject> pool;
+    private float speed = 100f;
+    [SerializeField] private float lifeTime = 5f;
+    [SerializeField] private LayerMask hitMask;
 
-    [Header("Effects")]
     [SerializeField] private GameObject hitEffectPrefab;
     [SerializeField] private AudioClip hitSound;
-
-    public void SetPool(IObjectPool<GameObject> pool) => _pool = pool;
-
+    private float timer;
+    public void SetPool(IObjectPool<GameObject> pool) => this.pool = pool;
+    public void ResetProjectile()
+    {
+        timer = 0f;
+    }
     private void Update()
     {
-        transform.Translate(_speed * Time.deltaTime * Vector3.right);
-    }
-
-    private void OnTriggerEnter(Collider other)
-    {
-        // --- 1. Spawn Hit Effect ---
-        if (hitEffectPrefab != null)
+        timer += Time.deltaTime;
+        if (timer >= lifeTime)
         {
-            // Spawn effect at projectile's current position
-            Instantiate(hitEffectPrefab, transform.position, Quaternion.identity);
+            Deactivate();
+            return;
         }
 
-        // --- 2. Play Sound ---
+        float moveDistance = speed * Time.deltaTime;
+
+        if (Physics.Raycast(transform.position, transform.right, out RaycastHit hit, moveDistance, hitMask))
+        {
+            HandleHit(hit);
+        }
+        else
+        {
+            transform.Translate(Vector3.right * moveDistance);
+        }
+    }
+
+    private void HandleHit(RaycastHit hit)
+    {
+        transform.position = hit.point;
+
+        if (hitEffectPrefab != null)
+        {
+            Instantiate(hitEffectPrefab, transform.position, Quaternion.LookRotation(hit.normal));
+        }
+
         if (hitSound != null)
         {
-            // Use PlayClipAtPoint so the sound continues even if this projectile object is disabled
             AudioSource.PlayClipAtPoint(hitSound, transform.position);
         }
 
-        // Return to pool
-        _pool?.Release(this.gameObject);
+        IDamageable target = hit.collider.GetComponentInParent<IDamageable>();
+
+        target?.TakeDamage(10);
+
+        Deactivate();
     }
 
     private void OnEnable() => Invoke(nameof(Deactivate), 7f);
@@ -42,6 +63,6 @@ public class Projectile : MonoBehaviour
     private void Deactivate()
     {
         if (gameObject.activeInHierarchy)
-            _pool?.Release(this.gameObject);
+            pool?.Release(this.gameObject);
     }
 }

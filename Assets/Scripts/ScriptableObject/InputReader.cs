@@ -5,7 +5,6 @@ using UnityEngine.Events;
 [CreateAssetMenu(fileName = "InputReader", menuName = "Scriptable Objects/InputReader")]
 public class InputReader : ScriptableObject, InputSystem_Actions.IPlayerActions
 {
-    // Observer Pattern: Events for other scripts to listen to
     public event UnityAction<Vector2> MoveEvent = delegate { };
     public event UnityAction<Vector2> LookEvent = delegate { };
     public event UnityAction AttackEvent = delegate { };
@@ -18,21 +17,21 @@ public class InputReader : ScriptableObject, InputSystem_Actions.IPlayerActions
     public event UnityAction<bool> RollEvent = delegate { };
     public event UnityAction SwitchCombatEvent = delegate { };
 
-    private InputSystem_Actions _gameInput;
+    private InputSystem_Actions gameInput;
 
     private void OnEnable()
     {
-        if (_gameInput == null)
+        if (gameInput == null)
         {
-            _gameInput = new InputSystem_Actions();
-            _gameInput.Player.SetCallbacks(this);
+            gameInput = new InputSystem_Actions();
+            gameInput.Player.SetCallbacks(this);
         }
-        _gameInput.Player.Enable();
+        gameInput.Player.Enable();
     }
 
     private void OnDisable()
     {
-        _gameInput?.Player.Disable();
+        gameInput?.Player.Disable();
     }
     public void OnLockOn(InputAction.CallbackContext context)
     {
@@ -76,7 +75,6 @@ public class InputReader : ScriptableObject, InputSystem_Actions.IPlayerActions
             SprintEvent.Invoke(false);
     }
 
-    // [NEW] Jump Implementation
     public void OnJump(InputAction.CallbackContext context)
     {
         if (context.phase == InputActionPhase.Performed)
@@ -85,7 +83,6 @@ public class InputReader : ScriptableObject, InputSystem_Actions.IPlayerActions
             JumpEvent.Invoke(false);
     }
 
-    // [NEW] Crouch Implementation
     public void OnCrouch(InputAction.CallbackContext context)
     {
         if (context.phase == InputActionPhase.Performed)
@@ -106,7 +103,6 @@ public class InputReader : ScriptableObject, InputSystem_Actions.IPlayerActions
         else if (context.phase == InputActionPhase.Canceled)
             RollEvent.Invoke(false);
     }
-    // Unused
     public void OnInteract(InputAction.CallbackContext context) { }
     public void OnPrevious(InputAction.CallbackContext context) { }
     public void OnNext(InputAction.CallbackContext context) { }

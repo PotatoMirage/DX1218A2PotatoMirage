@@ -4,21 +4,17 @@ using UnityEngine;
 
 public class CameraSwitcher : MonoBehaviour
 {
-    [Header("Input")]
     [SerializeField] private InputReader inputReader;
 
-    [Header("Cameras")]
     [SerializeField] private CinemachineCamera freelookCam;
     [SerializeField] private CinemachineCamera aimCam;
     [SerializeField] private CinemachineCamera lockOnCam;
 
-    [Header("References")]
     [SerializeField] private Camera mainCamera;
     [SerializeField] private PlayerController player;
     [SerializeField] private GameObject crosshairUI;
     [SerializeField] private RectTransform lockOnReticle;
 
-    [Header("Settings")]
     [SerializeField] private LayerMask enemyLayer;
     [SerializeField] private float lockOnRadius = 20f;
     [SerializeField] private float unlockDistance = 30f;
@@ -54,7 +50,6 @@ public class CameraSwitcher : MonoBehaviour
         inputReader.LockOnEvent -= OnLockOn;
     }
 
-    // [FIX] Moved to LateUpdate to prevent UI jitter/lag
     private void LateUpdate()
     {
         if (isLockedOn)
@@ -81,18 +76,14 @@ public class CameraSwitcher : MonoBehaviour
     {
         if (isAiming) return;
 
-        // 1. Toggle the logic state
         if (isLockedOn)
         {
             DisengageLockOn();
         }
         else
         {
-            // Force player into Strafe Mode IMMEDIATELY
             player.SetLockOnState(true);
             isLockedOn = true;
-
-            // 2. Try to find a target for the camera
             FindAndLockTarget();
         }
     }
@@ -102,9 +93,9 @@ public class CameraSwitcher : MonoBehaviour
         Collider[] enemies = Physics.OverlapSphere(player.transform.position, lockOnRadius, enemyLayer);
         Transform bestTarget = null;
         float closestDistToCenter = float.MaxValue;
-        Vector2 screenCenter = new Vector2(Screen.width / 2f, Screen.height / 2f);
+        Vector2 screenCenter = new(Screen.width / 2f, Screen.height / 2f);
 
-        foreach (var enemy in enemies)
+        foreach (Collider enemy in enemies)
         {
             Vector3 screenPos = mainCamera.WorldToScreenPoint(enemy.transform.position);
             if (screenPos.z < 0) continue;
@@ -117,8 +108,6 @@ public class CameraSwitcher : MonoBehaviour
             }
         }
 
-        // 3. If we found a target, lock the CAMERA. 
-        // If not, we just stay in "Strafe Mode" (IsLockedOn = true) without a target.
         if (bestTarget != null)
         {
             EngageLockOn(bestTarget);
@@ -128,7 +117,7 @@ public class CameraSwitcher : MonoBehaviour
     private void EngageLockOn(Transform target)
     {
         currentLockTarget = target;
-        player.SetLockOnTarget(currentLockTarget); // Assigns target
+        player.SetLockOnTarget(currentLockTarget);
 
         lockOnCam.Target.LookAtTarget = currentLockTarget;
         lockOnCam.Target.TrackingTarget = player.transform;
@@ -143,9 +132,8 @@ public class CameraSwitcher : MonoBehaviour
         isLockedOn = false;
         currentLockTarget = null;
 
-        // Reset Player Data
-        player.SetLockOnState(false); // Turn off Animator Bool
-        player.SetLockOnTarget(null); // Clear Target
+        player.SetLockOnState(false);
+        player.SetLockOnTarget(null);
 
         lockOnCam.Priority = 0;
         lockOnCam.Target.LookAtTarget = null;
@@ -175,7 +163,6 @@ public class CameraSwitcher : MonoBehaviour
         {
             Vector3 screenPos = mainCamera.WorldToScreenPoint(currentLockTarget.position);
 
-            // Basic check to ensure it's in front of camera
             if (screenPos.z > 0)
             {
                 lockOnReticle.position = screenPos;
@@ -183,7 +170,6 @@ public class CameraSwitcher : MonoBehaviour
             }
             else
             {
-                // Hide if behind camera so it doesn't "fall" or appear inverted
                 lockOnReticle.gameObject.SetActive(false);
             }
         }

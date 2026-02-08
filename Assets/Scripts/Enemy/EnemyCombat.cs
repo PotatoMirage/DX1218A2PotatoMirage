@@ -4,50 +4,45 @@ using UnityEngine;
 [RequireComponent(typeof(Animator))]
 public class EnemyCombat : MonoBehaviour
 {
-    [Header("Configuration")]
     [SerializeField] private List<AttackConfigSO> comboChain;
     [SerializeField] private float damage = 10f;
 
-    private Animator _animator;
-    private bool _isAttacking;
-    private int _comboIndex;
+    private Animator animator;
+    private bool isAttacking;
+    private int comboIndex;
 
     // Helper for AI
-    public bool IsAttacking => _isAttacking;
+    public bool IsAttacking => isAttacking;
 
     private void Awake()
     {
-        _animator = GetComponent<Animator>();
+        animator = GetComponent<Animator>();
     }
 
     // Called by EnemyController
     public void StartAttackCombo()
     {
-        if (_isAttacking) return;
+        if (isAttacking) return;
 
-        _isAttacking = true;
-        _comboIndex = 0;
-        _animator.SetBool("IsAttack", true);
+        isAttacking = true;
+        comboIndex = 0;
+        animator.SetBool("IsAttack", true);
 
-        PlayAttack(comboChain[_comboIndex]);
+        PlayAttack(comboChain[comboIndex]);
     }
 
     private void PlayAttack(AttackConfigSO attackConfig)
     {
-        _animator.SetInteger("AttackStep", _comboIndex + 1);
-        _animator.CrossFade(attackConfig.animationStateName, 0.1f);
+        animator.SetInteger("AttackStep", comboIndex + 1);
+        animator.CrossFade(attackConfig.animationStateName, 0.1f);
     }
 
-    // --- ANIMATION EVENTS ---
-
-    // REQUIRED: Add "EndAttack" event to the end of ALL Enemy Attack Animations
     public void EndAttack()
     {
-        // Check if there is another attack in the chain
-        if (_comboIndex < comboChain.Count - 1)
+        if (comboIndex < comboChain.Count - 1)
         {
-            _comboIndex++;
-            PlayAttack(comboChain[_comboIndex]);
+            comboIndex++;
+            PlayAttack(comboChain[comboIndex]);
         }
         else
         {
@@ -55,14 +50,13 @@ public class EnemyCombat : MonoBehaviour
         }
     }
 
-    // Optional: Only needed if you want the enemy to rotate mid-attack
     public void UnlockCombo() { }
 
     private void ResetCombo()
     {
-        _isAttacking = false;
-        _comboIndex = 0;
-        _animator.SetBool("IsAttack", false);
-        _animator.SetInteger("AttackStep", 0);
+        isAttacking = false;
+        comboIndex = 0;
+        animator.SetBool("IsAttack", false);
+        animator.SetInteger("AttackStep", 0);
     }
 }
